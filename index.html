@@ -302,6 +302,26 @@ function locateGPS(){
     },err=>{clearTimeout(guard);fail(err.code===1?"La localisation est refusée. Autorisez-la pour ce site dans les réglages de votre téléphone (Réglages > Confidentialité > Service de localisation > Safari), ou choisissez votre ville ci-dessous.":"La position n'a pas pu être obtenue. Choisissez votre ville ci-dessous.")},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   }catch(e){clearTimeout(guard);fail("Le GPS n'est pas disponible ici. Choisissez votre ville ci-dessous.")}
 }
+async function searchStoreOnline(){
+  const query=(S.storeSearch||"").trim();
+  if(!query){S.locMsg="Saisissez le nom du magasin et sa commune, par exemple « Aldi Peyriac-Minervois ».";render();return}
+  S.locBusy=true;S.locMsg="Recherche de magasins sur la carte…";render();
+  try{
+    const q=query+" "+(S.loc.label||"Aude")+" France";
+    const url="https://nominatim.openstreetmap.org/search?format=json&limit=10&addressdetails=1&namedetails=1&countrycodes=fr&accept-language=fr&q="+encodeURIComponent(q);
+    const results=await getJSON(url,{},15000);
+    const found=(results||[]).filter(r=>r.lat&&r.lon).map(r=>{
+      const a=r.address||{},n=(r.namedetails||{}).name||a.shop||a.brand||r.name||r.display_name.split(",")[0];
+      const town=a.city||a.town||a.village||a.municipality||a.suburb||"";
+      const street=[a.house_number,a.road].filter(Boolean).join(" ");
+      return{id:"geo-"+r.osm_type+"-"+r.osm_id,name:n,town,addr:[street,[a.postcode,town].filter(Boolean).join(" ")].filter(Boolean).join(", ")||r.display_name,lat:+r.lat,lng:+r.lon,fmt:/aldi|lidl|netto/i.test(n)?"Discount":/supermarket|supermarch/i.test(r.type+" "+r.class)?"Supermarché":"Magasin",custom:false,source:"Nominatim"};
+    }).filter(s=>norm([s.name,s.town,s.addr].join(" ")).includes(norm(query))||norm(query).split(" ").every(t=>norm([s.name,s.town,s.addr].join(" ")).includes(t)));
+    const combined=[...(S.liveStores||[]),...found];
+    const unique=new Map();combined.forEach(s=>unique.set(s.id||norm(s.name)+"|"+norm(s.town||""),s));S.liveStores=[...unique.values()];
+    S.locMsg=found.length?found.length+" résultat(s) supplémentaire(s) trouvés sur la carte. Vérifiez l’adresse avant de partir.":"Aucun résultat cartographique pour « "+query+" ». Essayez le nom exact avec la commune.";
+  }catch(e){S.locMsg="La recherche cartographique est momentanément indisponible. Vérifiez le nom et réessayez."}
+  S.locBusy=false;save();render();
+}
 async function searchCity(q){
   q=q.trim();if(!q)return;
   S.locBusy=true;S.locMsg=`Recherche de « ${q} »…`;render();
@@ -571,7 +591,7 @@ function vStores(){
   const towns=TOWNS.map(t=>`<button class="chip" data-town="${t[0]}">${t[0]}</button>`).join("");
   return `<div class="view"><h1>Magasins</h1>
   <div class="storecard" aria-live="polite">
-    <div class="eyebrow">Rechercher un magasin</div><input class="inp" id="storesearch" value="${esc(S.storeSearch||"")}" placeholder="Nom, enseigne ou ville (ex. Leclerc)" aria-label="Rechercher un magasin" autocomplete="off">
+    <div class="eyebrow">Rechercher un magasin</div><input class="inp" id="storesearch" value="${esc(S.storeSearch||"")}" placeholder="Nom, enseigne ou ville (ex. Aldi Peyriac)" aria-label="Rechercher un magasin" autocomplete="off"><button class="btn ghost" data-searchstore>🔎 Rechercher aussi sur la carte</button>
     <div class="top"><span style="color:var(--accent);flex:none;width:26px">${ICON.pin}</span><div class="txt"><div class="eyebrow">Ma position</div><div class="n">${esc(S.loc.label)}</div><div class="s">${S.loc.mode==="gps"?"Localisé par GPS":S.loc.mode==="ville"?"Choisie à la main":"Position par défaut"}</div></div></div>
     <button class="btn" data-gps ${S.locBusy?"disabled":""}>${S.locBusy?"Recherche en cours…":"Me localiser"}</button>
     <form class="add-row" id="cityform"><input class="inp" id="city" placeholder="Ville ou code postal" autocomplete="off" aria-label="Ville ou code postal"><button class="btn ghost" ${S.locBusy?"disabled":""}>OK</button></form>
@@ -655,7 +675,8 @@ document.addEventListener("click",e=>{
   if(d.catF){S.cat=d.catF;render();return}
   if(d.sf){S.storeFilter=d.sf;render();return}
   if(d.pick){pickStore(d.pick);return}
-  if("gps" in d){locateGPS();return}
+  if("searchstore" in d){searchStoreOnline();return}
+   if("gps" in d){locateGPS();return}
   if(d.town){const t=TOWNS.find(t=>t[0]===d.town);setLoc({lat:t[2],lng:t[3],label:`${t[0]} (${t[1]})`,mode:"ville"});return}
   if(d.delstore){S.customStores=S.customStores.filter(s=>s.id!==d.delstore);if(S.storeId===d.delstore)S.storeId=null;save();render();return}
   if("allfavs" in d){if(S.example){S.cart=[];S.example=false}let n=0;S.favs.forEach(x=>{if(!inCart(x)){S.cart.push({id:uid(),name:x,cat:catOf(x),qty:1,done:false});n++}});save();render();toast(n?`${n} favori${n>1?"s":""} ajouté${n>1?"s":""}`:"Tous vos favoris sont déjà au panier");return}
