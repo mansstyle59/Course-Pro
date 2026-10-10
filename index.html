@@ -214,6 +214,28 @@ a{color:#fff}
 @media(prefers-reduced-transparency:reduce){.storecard,.stat,.list,.product-list .product-row,.totals,.confirm,.search,.chip,.shop,.hero,nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(27,18,20,.94)}.product-list .product-row{background:#fffaf4;color:#17241d}}
 /* === REFERENCE LAYOUT POLISH === */
 
+/* Final list polish to mirror the reference */
+.search-results-panel{padding:12px 10px 9px;background:rgba(255,244,233,.17)}
+.search-results-panel .section-title{padding:0 5px 1px;margin-bottom:10px;align-items:center}
+.search-results-panel .section-title>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex:1}
+.search-results-panel .section-title b{font-size:1.45rem;letter-spacing:-.045em}
+.search-results-panel .section-title small{font-size:.78rem;white-space:nowrap}
+.results-filter{border:1px solid #ffffff50;border-radius:50%;height:36px;width:36px;display:grid;place-items:center;background:#ffffff1b;font-size:1.35rem;color:#fff}
+.search-results-panel .product-list{gap:7px}
+.search-results-panel .product-list .product-row{border-radius:20px;padding:10px 9px;gap:8px;background:rgba(255,250,245,.78);border-color:rgba(255,255,255,.8)}
+.search-results-panel .product-row .txt .n{font-size:.96rem;line-height:1.18}
+.search-results-panel .product-row .product-category{font-size:.75rem;line-height:1.1}
+.search-results-panel .product-row .product-price{font-size:1.06rem}
+.search-results-panel .product-row .thumb{display:none}
+.search-results-panel .product-row .star{background:rgba(89,79,67,.12);color:#fff;border:1px solid #ffffff90;box-shadow:inset 0 1px 0 #ffffff9c}
+.search-results-panel .product-row .star.on{color:#ff9f36;background:rgba(255,146,36,.21)}
+.search-results-panel .product-row .icon-btn{width:44px;height:44px}
+.search-results-panel .product-row .txt{padding-left:2px}
+.brand-hero .hero-search input{flex:1;width:100%;min-width:0;border:0;background:transparent;color:#fff;font:inherit;padding:0;outline:none}
+.brand-hero .hero-search input::placeholder{color:rgba(255,249,243,.9)}
+@media(max-width:390px){.search-results-panel .product-list .product-row{padding:9px 7px}.search-results-panel .product-row .icon-btn{width:39px;height:39px}.search-results-panel .product-row .star{width:31px;height:33px}}
+
+
 /* Replica refinement — exact visual order & real logo tiles */
 .home-liquid{gap:14px}
 .brand-hero{margin:-18px -14px 0;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;flex-direction:column;gap:13px;position:relative;overflow:hidden;border-radius:0 0 30px 30px;background:linear-gradient(180deg,rgba(80,10,12,.14),rgba(34,7,16,.12));}
