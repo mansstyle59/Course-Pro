@@ -365,7 +365,7 @@ const CI={
  an:'<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3-5 5 0 1.5 1.5 2 2.5 2s1.5-.5 2.5-.5 1.5.5 2.5.5 2.5-.5 2.5-2c0-2-2-5-5-5z"/>',
  au:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>'
 };
-const IMGKEY="coursepro-img-v8";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
+const IMGKEY="coursepro-img-v9";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
 let imgOff=false;const imgQueue=[];let imgBusy=false;
 const catSvg=cat=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CI[cat]||CI.au}</svg>`;
 function thumb(name,cat,small){
@@ -403,6 +403,13 @@ async function pumpImages(){
   while(imgQueue.length&&!imgOff){
     const name=imgQueue.shift();if(IMG[name]!==undefined)continue;
     try{
+      // Fruits et légumes frais : éviter les photos d’emballages, boissons ou conserves mal classées.
+      if(catOf(name)==="fl"){
+        IMG[name]="";
+        try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
+        document.querySelectorAll('.thumb[data-img="'+CSS.escape(name)+'"]').forEach(el=>el.removeAttribute("data-img"));
+        continue;
+      }
       const q=imageQueryName(name);
       let photo="";
       const plain=name.replace(/\([^)]*\)/g," ").replace(/\b(?:x\s?\d+|\d+(?:[,.]\d+)?\s?(?:g|kg|ml|cl|l))\b/gi," ").replace(/\s+/g," ").trim();
