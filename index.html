@@ -566,7 +566,8 @@ function vFavs(){
 
 function storeLogo(name){
   const n=norm(name);
-  const domain=n.includes('carrefour')?'carrefour.fr':n.includes('leclerc')?'e.leclerc':n.includes('intermarche')?'intermarche.com':n.includes('lidl')?'lidl.fr':n.includes('aldi')?'aldi.fr':n.includes('auchan')?'auchan.fr':(['super u','hyper u','u express','utile'].includes(n)||n.includes('courses u'))?'coursesu.com':'';
+  if(n.includes('carrefour'))return 'https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/carrefour/default.svg';
+  const domain=n.includes('leclerc')?'e.leclerc':n.includes('intermarche')?'intermarche.com':n.includes('lidl')?'lidl.fr':n.includes('aldi')?'aldi.fr':n.includes('auchan')?'auchan.fr':(['super u','hyper u','u express','utile'].includes(n)||n.includes('courses u'))?'coursesu.com':'';
   return domain?'https://www.google.com/s2/favicons?domain='+encodeURIComponent(domain)+'&sz=128':'';
 }
 function cleanStoreName(s){
