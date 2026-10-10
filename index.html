@@ -81,7 +81,7 @@ h2{font-size:1.2rem;font-weight:700}
 .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:3px}
 .thumb.sm{width:38px;height:38px;border-radius:11px}.thumb.sm svg{width:22px;height:22px}
 /* Cartes produits visuelles, pensées pour le mobile */
-.product-row{gap:12px;align-items:center;padding:12px}.product-row .thumb{width:88px;height:88px;border-radius:18px;background:#fff;border:1px solid var(--line);color:var(--accent);flex:none}.product-row .thumb svg{width:48px;height:48px;opacity:.72}.product-row .thumb img{object-fit:contain;padding:5px;background:#fff}.product-row .txt{align-self:center}.product-row .txt .n{font-size:1rem;line-height:1.3;margin-bottom:4px}.product-row .product-category{font-size:.78rem;color:var(--muted);margin-bottom:5px}.product-row .product-price{font-weight:800;color:var(--accent);font-size:1.12rem;line-height:1.25}.product-row .product-price .approx{font-weight:500;color:var(--muted);font-size:.82rem}.product-row .star{width:30px}.product-row .icon-btn{width:46px;height:46px;border-radius:15px;font-size:1.2rem}@media(max-width:390px){.product-row{gap:8px;padding:10px}.product-row .thumb{width:70px;height:70px;border-radius:15px}.product-row .thumb svg{width:38px;height:38px}.product-row .icon-btn{width:40px;height:40px}.product-row .star{width:26px}}
+.product-list{display:flex;flex-direction:column;gap:10px;background:transparent;border:0;overflow:visible}.product-list .product-row{border:1px solid var(--line);border-radius:22px;background:var(--surface);padding:12px;gap:12px;align-items:center}.product-list .product-row:first-child{border-top:1px solid var(--line)}.product-row{gap:12px;align-items:center;padding:12px}.product-row .thumb{width:88px;height:88px;border-radius:18px;background:#fff;border:1px solid var(--line);color:var(--accent);flex:none}.product-row .thumb svg{width:48px;height:48px;opacity:.72}.product-row .thumb img{object-fit:contain;padding:5px;background:#fff}.product-row .txt{align-self:center}.product-row .txt .n{font-size:1rem;line-height:1.3;margin-bottom:4px}.product-row .product-category{font-size:.78rem;color:var(--muted);margin-bottom:5px}.product-row .product-price{font-weight:800;color:var(--accent);font-size:1.12rem;line-height:1.25}.product-row .product-price .approx{font-weight:500;color:var(--muted);font-size:.82rem}.product-row .star{width:30px}.product-row .icon-btn{width:46px;height:46px;border-radius:15px;font-size:1.2rem}@media(max-width:390px){.product-row{gap:8px;padding:10px}.product-row .thumb{width:70px;height:70px;border-radius:15px}.product-row .thumb svg{width:38px;height:38px}.product-row .icon-btn{width:40px;height:40px}.product-row .star{width:26px}}
 .txt{flex:1;min-width:0}
 .txt .n{font-weight:600;overflow-wrap:anywhere}
 .txt .s{font-size:.85rem;color:var(--muted)}
@@ -367,7 +367,7 @@ const CI={
  an:'<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3-5 5 0 1.5 1.5 2 2.5 2s1.5-.5 2.5-.5 1.5.5 2.5.5 2.5-.5 2.5-2c0-2-2-5-5-5z"/>',
  au:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>'
 };
-const IMGKEY="coursepro-img-v10";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
+const IMGKEY="coursepro-img-v11";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
 let imgOff=false;const imgQueue=[];let imgBusy=false;
 const catSvg=cat=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CI[cat]||CI.au}</svg>`;
 function thumb(name,cat,small){
@@ -562,7 +562,7 @@ function vSearch(){
   return `<div class="view"><div class="head"><h1>Rechercher</h1><span class="note num">${n} produits</span></div>
   <label class="search">${ICON.search.replace("<svg",'<svg width="20" height="20"')}<input id="q" placeholder="Produit, marque ou rayon" value="${esc(S.q)}" autocomplete="off" aria-label="Rechercher un produit"></label>
   ${q?"":`<div class="chips">${chips}</div>`}
-  <div class="list">${rows}</div>
+  <div class="list product-list">${rows}</div>
   <p class="note">Prix indicatifs relevés en France. Ils varient selon le magasin : corrigez-les dans le panier avec le prix vu en rayon, l'appli s'en souviendra.</p></div>`;
 }
 
