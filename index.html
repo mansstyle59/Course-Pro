@@ -349,10 +349,25 @@ async function pumpImages(){
     const name=imgQueue.shift();if(IMG[name]!==undefined)continue;
     try{
       const q=name.replace(/\([^)]*\)/g,"").trim();
-      const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=1&fields=image_front_small_url,image_front_url&langs=fr`);
-      const h=(r.hits||[])[0]||{};IMG[name]=h.image_front_small_url||h.image_front_url||"";fails=0;
+      let photo="";
+      // Open Food Facts: essayer l'API de recherche récente puis l'API publique classique.
+      try{
+        const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=5&fields=product_name,image_front_small_url,image_front_url&langs=fr`);
+        const hits=r.hits||[];
+        const hit=hits.find(x=>x.image_front_small_url||x.image_front_url)||hits[0]||{};
+        photo=hit.image_front_small_url||hit.image_front_url||"";
+      }catch(e){}
+      if(!photo){
+        try{
+          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,image_front_small_url,image_front_url`);
+          const products=r.products||[];
+          const hit=products.find(x=>x.image_front_small_url||x.image_front_url)||products[0]||{};
+          photo=hit.image_front_small_url||hit.image_front_url||"";
+        }catch(e){}
+      }
+      IMG[name]=photo;fails=0;
       try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
-      document.querySelectorAll(`.thumb[data-img="${CSS.escape(name)}"]`).forEach(el=>{el.removeAttribute("data-img");if(IMG[name]){const im=new Image();im.alt="";im.onerror=()=>im.remove();im.src=IMG[name];el.appendChild(im)}});
+      document.querySelectorAll(`.thumb[data-img="${CSS.escape(name)}"]`).forEach(el=>{el.removeAttribute("data-img");if(IMG[name]){const im=new Image();im.alt=`Photo du produit ${name}`;im.onerror=()=>{im.remove();};im.src=IMG[name];el.appendChild(im)}});
     }catch(e){if(++fails>=3)imgOff=true}
     await new Promise(r=>setTimeout(r,700));
   }
@@ -399,7 +414,7 @@ function vHome(){
     <div class="stat"><span class="eyebrow">À prendre</span><b class="num">${todo}</b></div>
     <div class="stat"><span class="eyebrow">Dans le chariot</span><b class="num">${S.cart.length-todo}</b></div>
   </div>
-  <div class="field"><label for="budget">Budget des courses (€)</label><input id="budget" type="number" inputmode="decimal" min="0" step="5" value="${S.budget}"></div>
+  <div class="field"><label for="budget">Budget des courses (€)</label><input id="budget" type="number" inputmode="decimal" min="0" step="0.01" value="${Number(S.budget||0).toFixed(2)}" aria-describedby="budget-help"><small id="budget-help" class="note">Saisissez votre budget exact en euros (ex. 47,50 €). Il est enregistré automatiquement sur cet appareil.</small></div>
   <div class="grid2"><button class="btn" data-go="search">Ajouter des produits</button><button class="btn ghost" data-go="cart">Voir le panier</button></div>
   ${vHistory()}
   </div>`;
@@ -545,10 +560,10 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("input",e=>{
   if(e.target.id==="q"){S.q=e.target.value;const pos=e.target.selectionStart;render();const q=document.getElementById("q");q.focus();q.setSelectionRange(pos,pos)}
-  if(e.target.id==="budget"){S.budget=Math.max(0,parseFloat(e.target.value)||0);save()}
+  if(e.target.id==="budget"){const raw=String(e.target.value).replace(",",".");if(raw.trim()!==""&&Number.isFinite(Number(raw))){S.budget=Math.max(0,Math.round(Number(raw)*100)/100);save()}}
 });
 document.addEventListener("change",e=>{
-  if(e.target.id==="budget")render();
+  if(e.target.id==="budget"){const raw=String(e.target.value).replace(",",".");S.budget=raw.trim()===""?0:Math.max(0,Math.round((Number(raw)||0)*100)/100);save();render();}
   if(e.target.dataset.price!=null){
     const n=e.target.dataset.price,v=parseFloat(String(e.target.value).replace(",","."));
     if(isNaN(v)||e.target.value===""){delete S.prices[n]}else S.prices[n]=Math.round(v*100)/100;
