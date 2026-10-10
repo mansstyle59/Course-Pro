@@ -600,28 +600,34 @@ const pillStatus=s=>{const st=status(s);return st?`<span class="pill ${st.open?"
 function vHome(){
   const t=total(),pct=S.budget?Math.min(100,t/S.budget*100):0,left=S.budget-t,s=store();
   const todo=S.cart.filter(i=>!i.done).length;
-  const storeBlock=s?`<div class="storecard"><div class="top"><div class="txt"><div class="eyebrow">Mon magasin</div><h2>${esc(storeLabel(s))}</h2><div class="note">${esc(s.addr||"")}${km(s)!=null?` · ${kmTxt(s)} de ${esc(S.loc.label)}`:""}</div></div></div>
-    <div class="shop meta" style="padding:0;border:0">${pillStatus(s)}<span class="note">${todayHours(s)}</span></div>
-    <div class="shop acts" style="padding:0;border:0">${s.lat?`<a class="btn small ghost" href="${maps(s)}" target="_blank" rel="noopener">Itinéraire</a>`:""}<button class="btn small ghost" data-go="stores">Changer de magasin</button></div></div>`
-   :`<div class="storecard"><div class="eyebrow">Où faites-vous vos courses ?</div><h2>Choisissez votre magasin</h2><div class="note">Localisez-vous pour voir les magasins les plus proches, avec horaires et itinéraire.</div><button class="btn" data-go="stores">Choisir un magasin</button></div>`;
-  return `<div class="view">
-  <div><div class="eyebrow">Course Pro 1.0</div><h1>Bonjour Denis</h1></div>
-  ${storeBlock}
-  <div class="hero">
-    <div class="hero-row"><div><div class="eyebrow">Panier estimé</div><div class="big num">${eur(t)}</div></div>
-    <div style="text-align:right"><div class="eyebrow">Budget</div><div class="num" style="font-weight:700;font-size:1.15rem">${eur(S.budget)}</div></div></div>
-    <div class="bar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
-    <div class="num" style="font-weight:600">${left>=0?`Il reste ${eur(left)} sur le budget`:`Budget dépassé de ${eur(-left)}`}</div>
-  </div>
-  <div class="grid2">
-    <div class="stat"><span class="eyebrow">À prendre</span><b class="num">${todo}</b></div>
-    <div class="stat"><span class="eyebrow">Dans le chariot</span><b class="num">${S.cart.length-todo}</b></div>
-  </div>
-  <div class="field"><label for="budget">Budget des courses (€)</label><input id="budget" type="number" inputmode="decimal" min="0" step="0.01" value="${Number(S.budget||0).toFixed(2)}" aria-describedby="budget-help"><small id="budget-help" class="note">Saisissez votre budget exact en euros (ex. 47,50 €). Il est enregistré automatiquement sur cet appareil.</small></div>
-  <div class="grid2"><button class="btn" data-go="search">Ajouter des produits</button><button class="btn ghost" data-go="cart">Voir le panier</button></div>
-  ${vHistory()}
+  const header=`<section class="brand-hero">
+    <div class="brand-status"><span>16:45</span><span class="status-icons">●●●　◉　▰</span></div>
+    <div class="brand-wordmark"><div><div class="brand-title">Course <span>Pro</span><span class="brand-cart">${ICON.cart}</span></div><div class="brand-subtitle">Narbonne et alentours</div><div class="brand-tagline"><i></i> Vos courses, les meilleurs prix, près de chez vous</div></div><button class="glass-bell" type="button" aria-label="Notifications">♧</button></div>
+    <button class="hero-search" data-go="search"><span class="search-glyph">${ICON.search}</span><span>Produit, marque ou rayon...</span><span class="scan-glyph">▦</span></button>
+    <div class="hero-categories">${categoryHeroChips()}</div>
+  </section>`;
+  const storeBlock=s?`<section class="glass-panel selected-store"><div class="section-title"><span class="pin-disc">${ICON.pin}</span><div><b>Mon magasin</b><small>${esc(storeLabel(s))}</small></div></div><div class="selected-store-details"><span>${pillStatus(s)}</span><span class="note">${todayHours(s)}</span></div><button class="btn ghost small" data-go="stores">Changer de magasin</button></section>`:nearbyStoresPanel();
+  return `<div class="view home-liquid">
+    ${header}
+    ${storeBlock}
+    <section class="glass-panel budget-panel"><div class="section-title"><span class="section-emoji">🛒</span><div><b>Votre panier estimé</b><small>Suivez votre budget en temps réel</small></div></div><div class="budget-numbers"><strong class="num">${eur(t)}</strong><span>Budget <b class="num">${eur(S.budget)}</b></span></div><div class="budget-progress"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div><div class="budget-footer">${left>=0?`Il reste ${eur(left)} sur votre budget`:`Budget dépassé de ${eur(-left)}`}</div><div class="grid2"><div class="glass-stat"><span>À prendre</span><b>${todo}</b></div><div class="glass-stat"><span>Déjà pris</span><b>${S.cart.length-todo}</b></div></div></section>
+    <section class="glass-promo" data-go="stores"><div class="promo-icon">🔥</div><div class="promo-copy"><b>Bons plans du moment</b><small>Découvrez les magasins près de chez vous</small></div><div class="promo-percent">%</div><span class="promo-arrow">›</span></section>
+    <section class="glass-panel home-actions"><button class="btn" data-go="search">${ICON.search} Ajouter des produits</button><button class="btn ghost" data-go="cart">${ICON.cart} Voir le panier ${todo?'<span class="action-count">'+todo+'</span>':''}</button></section>
+    ${vHistory()}
   </div>`;
 }
+function nearbyStoresPanel(){
+  const list=[...nearby()].sort((a,b)=>(km(a)??1e9)-(km(b)??1e9)).slice(0,7);
+  return `<section class="glass-panel nearby-panel"><div class="section-title"><span class="pin-disc">${ICON.pin}</span><b>Magasins près de ${esc(S.loc.label.split(" (")[0]||"vous")}</b><button class="mini-link" data-go="stores">Voir tout ›</button></div><div class="store-tiles">${list.map(s=>`<button class="store-tile" data-pick="${esc(s.id)}"><span class="tile-logo">${storeLogo(s.name)?`<img src="${storeLogo(s.name)}" alt="${esc(cleanStoreName(s))}" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;logo-fallback&quot;>'+('${esc(cleanStoreName(s))}'.split(' ').map(x=>x[0]).join('').slice(0,3))+'</span>'">`:`<span class="logo-fallback">${esc(cleanStoreName(s).split(" ").map(x=>x[0]).join("").slice(0,3))}</span>`}</span><b>${esc(shortStoreName(s.name))}</b><small>${km(s)!=null?kmTxt(s):"Distance n/d"}</small></button>`).join("")}</div></section>`;
+}
+function categoryHeroChips(){
+ const items=[["all","Tout","▦"],["fl","Fruits et légumes","♧"],["vp","Viandes et poissons","♨"],["cr","Produits laitiers","♜"],["es","Épicerie salée","◈"],["su","Épicerie sucrée","✿"],["bo","Boulangerie","⌁"]];
+ return items.map(([k,l,icon])=>`<button class="hero-category ${S.cat===k?"active":""}" data-cat-f="${k}"><span class="cat-icon">${icon}</span><span>${l}</span></button>`).join("");
+}
+function shortStoreName(name){
+ const n=norm(name);if(n.includes("carrefour"))return "Carrefour";if(n.includes("intermarche"))return "Intermarché";if(n.includes("leclerc"))return "E.Leclerc";if(n.includes("lidl"))return "Lidl";if(n.includes("aldi"))return "ALDI";if(n.includes("auchan"))return "Auchan";if(n.includes("super u")||n==="u"||n.includes("courses u")||n.includes("hyper u"))return "U";return cleanStoreName({name});
+}
+
 function vHistory(){
   if(!S.history.length)return `<div><div class="eyebrow">Mes dernières courses</div><p class="note">Quand vous touchez « Terminer les courses » dans le panier, le magasin, la date et le montant s'enregistrent ici.</p></div>`;
   const avg=S.history.reduce((a,h)=>a+h.total,0)/S.history.length;
