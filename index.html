@@ -719,13 +719,20 @@ function vSearch(){
     rows=keys.map(k=>CATS[k].items.map(i=>productRow(i[0],k)).join("")).join("");
   }
   const n=Object.values(CATS).reduce((a,c)=>a+c.items.length,0);
-  const chips=[["all","Tout"],...Object.keys(CATS).filter(k=>CATS[k].items.length).map(k=>[k,CATS[k].n])]
-    .map(([k,n])=>`<button class="chip" data-cat-f="${k}" aria-pressed="${S.cat===k}">${n}</button>`).join("");
-  return `<div class="view"><div class="head"><h1>Rechercher</h1><span class="note num">${n} produits</span></div>
-  <label class="search">${ICON.search.replace("<svg",'<svg width="20" height="20"')}<input id="q" placeholder="Produit, marque ou rayon" value="${esc(S.q)}" autocomplete="off" aria-label="Rechercher un produit"></label>
-  ${q?"":`<div class="chips">${chips}</div>`}
-  <div class="list product-list">${rows}</div>
-  <p class="note">Prix indicatifs relevés en France. Ils varient selon le magasin : corrigez-les dans le panier avec le prix vu en rayon, l'appli s'en souviendra.</p></div>`;
+  const chips=[["all","Tout","▦"],...Object.keys(CATS).filter(k=>CATS[k].items.length).map(k=>[k,CATS[k].n,"•"])]
+    .map(([k,l,ic])=>`<button class="hero-category ${S.cat===k?"active":""}" data-cat-f="${k}"><span class="cat-icon">${ic}</span><span>${l}</span></button>`).join("");
+  return `<div class="view home-liquid">
+    <section class="brand-hero">
+      <div class="brand-status"><span>Course Pro</span><span class="status-icons">Narbonne et alentours</span></div>
+      <div class="brand-wordmark"><div><div class="brand-title">Course <span>Pro</span><span class="brand-cart">${ICON.cart}</span></div><div class="brand-subtitle">Narbonne et alentours</div><div class="brand-tagline"><i></i> Vos courses, les meilleurs prix, près de chez vous</div></div></div>
+      <label class="hero-search"><span class="search-glyph">${ICON.search}</span><input id="q" placeholder="Produit, marque ou rayon..." value="${esc(S.q)}" autocomplete="off" aria-label="Rechercher un produit"><span class="scan-glyph">▦</span></label>
+      ${q?"":`<div class="hero-categories">${chips}</div>`}
+    </section>
+    ${nearbyStoresPanel()}
+    <section class="glass-promo" data-go="stores"><div class="promo-icon">🔥</div><div class="promo-copy"><b>Bons plans du moment</b><small>Découvrez les meilleures promos près de chez vous</small></div><div class="promo-percent">%</div><span class="promo-arrow">›</span></section>
+    <section class="glass-panel search-results-panel"><div class="section-title"><div><b>Rechercher</b><small>${n} produits</small></div><span class="results-filter">☷</span></div><div class="list product-list">${rows}</div></section>
+    <p class="note">Prix indicatifs relevés en France. Ils varient selon le magasin : corrigez-les dans le panier avec le prix vu en rayon, l'appli s'en souviendra.</p>
+  </div>`;
 }
 
 function vFavs(){
