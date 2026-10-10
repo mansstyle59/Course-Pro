@@ -386,20 +386,20 @@ async function pumpImages(){
       let photo="";
       const plain=name.replace(/\([^)]*\)/g," ").replace(/\b(?:x\s?\d+|\d+(?:[,.]\d+)?\s?(?:g|kg|ml|cl|l))\b/gi," ").replace(/\s+/g," ").trim();
       const words=q.split(/\s+/).filter(w=>w.length>2);
-      const queries=[name,q,plain,words.slice(0,4).join(" "),words.slice(-3).join(" ")].filter((x,i,a)=>x&&a.indexOf(x)===i);
+      const queries=[name,q,words.slice(0,4).join(" ")].filter((x,i,a)=>x&&a.indexOf(x)===i);
       for(const query of queries){
         try{
-          const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=24&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
+          const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
           photo=bestProductImage(r.hits||r.products||[],name);
         }catch(e){}
         if(photo)break;
         try{
-          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=24&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url`);
+          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url`);
           photo=bestProductImage(r.products||[],name);
         }catch(e){}
         if(photo)break;
         // Laisser souffler les API publiques entre plusieurs variantes de recherche.
-        await new Promise(r=>setTimeout(r,250));
+        await new Promise(r=>setTimeout(r,120));
       }
       IMG[name]=photo||""; // mémorise aussi les absences pour éviter les requêtes répétées
       try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
@@ -444,7 +444,7 @@ function addItem(name,cat){
   if(f){f.qty++;f.done=false}else S.cart.push({id:uid(),name,cat:cat||catOf(name),qty:1,done:false});
   save();render();toast(`${name} ajouté au panier`);
 }
-let productDetail=null,detailQty=1;
+let productDetail=null,detailQty=1,detailPriceDraft="";
 function productDetailView(){
   if(!productDetail)return "";
   const name=productDetail,cat=catOf(name),c=CATS[cat]||CATS.au,p=price(name),f=inCart(name);
@@ -456,7 +456,7 @@ function productDetailView(){
     <div class="detail-price num">${p?eur(p):"Prix à renseigner"}</div>
     <div class="note">${stored?"Prix enregistré"+(S.storeId?" pour le magasin choisi":""):"Prix indicatif — à vérifier en magasin"}</div>
     <label class="detail-label" for="detail-price">Prix unitaire (€)</label>
-    <input class="inp" id="detail-price" type="number" inputmode="decimal" min="0" step="0.01" value="${p?Number(p).toFixed(2):""}" placeholder="Ex. 2,49">
+    <input class="inp" id="detail-price" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(detailPriceDraft!==""?detailPriceDraft:(p?Number(p).toFixed(2):""))}" placeholder="Ex. 2,49">
     <div class="detail-label">Quantité souhaitée</div>
     <div class="qty-control"><button class="icon-btn" data-detail-dec="1" aria-label="Diminuer">−</button><strong class="num">${detailQty}</strong><button class="icon-btn" data-detail-inc="1" aria-label="Augmenter">+</button></div>
     <div class="detail-total">Total estimé : <strong class="num">${p?eur(p*detailQty):"—"}</strong></div>
@@ -615,21 +615,21 @@ function render(){
 
 /* ---------- Interactions ---------- */
 document.addEventListener("click",e=>{
-  if(e.target.closest("[data-detail-close]")){productDetail=null;render();return}
+  if(e.target.closest("[data-detail-close]")){productDetail=null;detailPriceDraft="";render();return}
   const b=e.target.closest("button");
-  if(!b){const row=e.target.closest("[data-product]");if(row){productDetail=row.dataset.product;detailQty=Math.max(1,inCart(productDetail)?.qty||1);render()}return}
+  if(!b){const row=e.target.closest("[data-product]");if(row){productDetail=row.dataset.product;detailQty=Math.max(1,inCart(productDetail)?.qty||1);const currentPrice=price(productDetail);detailPriceDraft=currentPrice?Number(currentPrice).toFixed(2):"";render()}return}
   const d=b.dataset;
   if("detailInc" in d){detailQty=Math.min(999,detailQty+1);render();return}
   if("detailDec" in d){detailQty=Math.max(1,detailQty-1);render();return}
   if("detailAdd" in d){
-    const name=productDetail,raw=String(document.getElementById("detail-price")?.value||"").replace(",",".");
+    const name=productDetail,raw=String(detailPriceDraft!==""?detailPriceDraft:(document.getElementById("detail-price")?.value||"")).replace(",",".");
     if(raw.trim()!==""&&Number.isFinite(Number(raw))){
       const val=Math.round(Number(raw)*100)/100;
       if(S.storeId){S.storePrices=S.storePrices||{};S.storePrices[S.storeId]=S.storePrices[S.storeId]||{};S.storePrices[S.storeId][name]=val}else S.prices[name]=val;
     }
     if(S.example){S.cart=[];S.example=false}
     let item=inCart(name);if(item){item.qty+=detailQty;item.done=false}else S.cart.push({id:uid(),name,cat:catOf(name),qty:detailQty,done:false});
-    productDetail=null;save();render();toast(name+" ajouté au panier");return;
+    productDetail=null;detailPriceDraft="";save();render();toast(name+" ajouté au panier");return;
   }
   if(d.tab||d.go){S.tab=d.tab||d.go;S.confirmClear=false;render();window.scrollTo(0,0);return}
   if(d.add){addItem(d.add,d.cat);return}
@@ -657,8 +657,10 @@ document.addEventListener("click",e=>{
     S.cart=S.cart.filter(i=>!i.done);S.example=false;save();S.tab="home";render();window.scrollTo(0,0);toast("Courses enregistrées");
   }
 });
+let searchRenderTimer=null;
 document.addEventListener("input",e=>{
-  if(e.target.id==="q"){S.q=e.target.value;const pos=e.target.selectionStart;render();const q=document.getElementById("q");q.focus();q.setSelectionRange(pos,pos)}
+  if(e.target.id==="q"){S.q=e.target.value;clearTimeout(searchRenderTimer);const value=S.q;searchRenderTimer=setTimeout(()=>{if(S.q!==value)return;const q=document.getElementById("q");if(!q)return;const pos=q.selectionStart;render();const next=document.getElementById("q");if(next){next.focus({preventScroll:true});next.setSelectionRange(pos,pos)}},180)}
+  if(e.target.id==="detail-price"){detailPriceDraft=e.target.value}
   if(e.target.id==="budget"){const raw=String(e.target.value).replace(",",".");if(raw.trim()!==""&&Number.isFinite(Number(raw))){S.budget=Math.max(0,Math.round(Number(raw)*100)/100);save()}}
 });
 document.addEventListener("change",e=>{
