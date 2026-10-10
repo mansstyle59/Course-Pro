@@ -750,38 +750,24 @@ function render(){
 /* ---------- Interactions ---------- */
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&productDetail){productDetail=null;detailPriceDraft="";render()}});
 document.addEventListener("click",e=>{
-  if(e.target.closest(".detail-close")||(e.target.classList&&e.target.classList.contains("detail-backdrop"))){productDetail=null;detailPriceDraft="";render();return}
   const b=e.target.closest("button");
-  if(!b){const row=e.target.closest("[data-product]");if(row){productDetail=row.dataset.product;detailQty=Math.max(1,inCart(productDetail)?.qty||1);const currentPrice=price(productDetail);detailPriceDraft=currentPrice?Number(currentPrice).toFixed(2):"";render()}return}
+  if(!b)return;
   const d=b.dataset;
-  if("detailInc" in d){detailQty=Math.min(999,detailQty+1);render();return}
-  if("detailDec" in d){detailQty=Math.max(1,detailQty-1);render();return}
-  if("detailAdd" in d){
-    const name=productDetail,raw=String(detailPriceDraft!==""?detailPriceDraft:(document.getElementById("detail-price")?.value||"")).replace(",",".");
-    if(raw.trim()!==""&&Number.isFinite(Number(raw))){
-      const val=Math.round(Number(raw)*100)/100;
-      if(S.storeId){S.storePrices=S.storePrices||{};S.storePrices[S.storeId]=S.storePrices[S.storeId]||{};S.storePrices[S.storeId][name]=val}else S.prices[name]=val;
-    }
-    if(S.example){S.cart=[];S.example=false}
-    let item=inCart(name);if(item){item.qty+=detailQty;item.done=false}else S.cart.push({id:uid(),name,cat:catOf(name),qty:detailQty,done:false});
-    productDetail=null;detailPriceDraft="";save();render();toast(name+" ajouté au panier");return;
-  }
   if(d.tab||d.go){S.tab=d.tab||d.go;S.confirmClear=false;render();window.scrollTo(0,0);return}
   if(d.add){addItem(d.add,d.cat);return}
-  if(d.photo){openProductCamera(d.photo);return}
   if(d.fav){const i=S.favs.indexOf(d.fav);i<0?S.favs.push(d.fav):S.favs.splice(i,1);save();render();toast(i<0?"Ajouté aux favoris":"Retiré des favoris");return}
   if(d.catF){S.cat=d.catF;render();return}
   if(d.sf){S.storeFilter=d.sf;render();return}
   if(d.pick){pickStore(d.pick);return}
   if("searchstore" in d){searchStoreOnline();return}
-   if("gps" in d){locateGPS();return}
+  if("gps" in d){locateGPS();return}
   if(d.town){const t=TOWNS.find(t=>t[0]===d.town);setLoc({lat:t[2],lng:t[3],label:`${t[0]} (${t[1]})`,mode:"ville"});return}
   if(d.delstore){S.customStores=S.customStores.filter(s=>s.id!==d.delstore);if(S.storeId===d.delstore)S.storeId=null;save();render();return}
-  if("allfavs" in d){if(S.example){S.cart=[];S.example=false}let n=0;S.favs.forEach(x=>{if(!inCart(x)){S.cart.push({id:uid(),name:x,cat:catOf(x),qty:1,done:false});n++}});save();render();toast(n?`${n} favori${n>1?"s":""} ajouté${n>1?"s":""}`:"Tous vos favoris sont déjà au panier");return}
+  if("allfavs" in d){if(S.example){S.cart=[];S.example=false}let n=0;S.favs.forEach(x=>{if(!inCart(x)){S.cart.push({id:uid(),name:x,cat:catOf(x),qty:1,done:false});n++}});save();render();toast(n?` ${n} favori${n>1?"s":""} ajouté${n>1?"s":""}`:"Tous vos favoris sont déjà au panier");return}
   const it=id=>S.cart.find(i=>i.id===id);
   if(d.done){const i=it(d.done);i.done=!i.done;S.example=false;save();render();return}
   if(d.inc){it(d.inc).qty++;S.example=false;save();render();return}
-  if(d.dec){const i=it(d.dec);if(--i.qty<1)S.cart=S.cart.filter(x=>x!==i);save();render();return}
+  if(d.dec){it(d.dec).qty--;if(it(d.dec).qty<1)S.cart=S.cart.filter(x=>x!==it(d.dec));save();render();return}
   if("clear" in d){S.confirmClear=true;render();return}
   if("clearNo" in d){S.confirmClear=false;render();return}
   if("clearYes" in d){S.cart=[];S.example=false;S.confirmClear=false;save();render();toast("Panier vidé");return}
