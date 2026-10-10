@@ -249,7 +249,7 @@ const store=()=>{if(!S.storeId)return null;const f=allStores().find(s=>s.id===S.
 function pickStore(id){const s=allStores().find(x=>x.id===id);if(!s)return;S.storeId=id;S.storeSnap=s;save();render();toast(`Magasin choisi : ${storeLabel(s)}`)}
 
 /* ---------- Localisation ---------- */
-async function getJSON(url,opts){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),20000);try{const r=await fetch(url,{...opts,signal:ctl.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(t)}}
+async function getJSON(url,opts,timeoutMs=10000){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),timeoutMs);try{const r=await fetch(url,{...opts,signal:ctl.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json()}finally{clearTimeout(t)}}
 async function loadStoresAround(){
   const{lat,lng}=S.loc;
   const radius=50000;
@@ -258,7 +258,7 @@ async function loadStoresAround(){
   let lastError=null;
   for(const endpoint of endpoints){
     try{
-      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},8500);
       const seen=new Set();
       const list=(j.elements||[]).map(fromOSM).filter(s=>{
         if(!s.name||s.lat==null)return false;
@@ -272,7 +272,7 @@ async function loadStoresAround(){
   }
   S.liveStores=null;
   const near=STORES.some(s=>km(s)<50);
-  S.locMsg=near?"La recherche de magasins en ligne est temporairement indisponible. Les magasins enregistrés du secteur restent affichés.":"La recherche en ligne est temporairement indisponible. Vérifiez votre position ou ajoutez un magasin.";
+  S.locMsg=near?"Recherche en ligne indisponible pour le moment. Les magasins déjà enregistrés restent affichés. Réessayez dans quelques instants.":"La recherche des magasins a échoué temporairement. Vérifiez la ville choisie ou réessayez plus tard.";
 }
 async function setLoc(loc){S.loc=loc;S.locBusy=true;render();await loadStoresAround();S.locBusy=false;save();render()}
 function locateGPS(){
