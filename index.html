@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.product-row{cursor:pointer}.product-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.detail-backdrop{position:fixed;inset:0;z-index:999;background:rgba(10,20,14,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box}.detail-card{position:relative;width:min(100%,520px);max-height:90dvh;overflow:auto;background:var(--surface);color:var(--text);border-radius:24px;padding:22px;box-sizing:border-box;box-shadow:0 12px 50px #0003}.detail-close{position:absolute;right:16px;top:14px;border:0;border-radius:50%;width:38px;height:38px;font-size:26px;background:var(--surface-2);color:var(--text)}.detail-photo{height:150px;display:grid;place-items:center;margin-bottom:12px}.detail-photo .thumb{width:138px;height:138px;border-radius:20px}.detail-photo .thumb svg{width:54px;height:54px}.detail-photo .thumb img{padding:6px}.detail-card h2{font-size:1.35rem;margin:7px 42px 8px 0}.detail-price{font-size:1.65rem;font-weight:800;margin:12px 0 2px}.detail-label{display:block;font-weight:650;margin:18px 0 7px}.detail-card .inp{width:100%;box-sizing:border-box}.qty-control{display:flex;align-items:center;justify-content:center;gap:24px;margin:10px 0}.qty-control strong{font-size:1.3rem;min-width:30px;text-align:center}.detail-total{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px;margin-top:16px;font-size:1rem}.detail-add{width:100%;margin-top:16px}.detail-camera{width:100%;margin-top:8px}</style></head><body>
 <title>Course Pro 1.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
@@ -440,10 +440,30 @@ function addItem(name,cat){
   if(f){f.qty++;f.done=false}else S.cart.push({id:uid(),name,cat:cat||catOf(name),qty:1,done:false});
   save();render();toast(`${name} ajouté au panier`);
 }
+let productDetail=null,detailQty=1;
+function productDetailView(){
+  if(!productDetail)return "";
+  const name=productDetail,cat=catOf(name),c=CATS[cat]||CATS.au,p=price(name),f=inCart(name);
+  const stored=!!(S.storeId&&S.storePrices?.[S.storeId]?.[name]!=null)||S.prices[name]!=null;
+  return `<div class="detail-backdrop" data-detail-close="1"><section class="detail-card" role="dialog" aria-modal="true" aria-label="Fiche produit" onclick="event.stopPropagation()">
+    <button class="detail-close" data-detail-close="1" aria-label="Fermer">×</button>
+    <div class="detail-photo">${thumb(name,cat,true)}</div>
+    <div class="eyebrow">${esc(c.n)} · Fiche produit</div><h2>${esc(name)}</h2>
+    <div class="detail-price num">${p?eur(p):"Prix à renseigner"}</div>
+    <div class="note">${stored?"Prix enregistré"+(S.storeId?" pour le magasin choisi":""):"Prix indicatif — à vérifier en magasin"}</div>
+    <label class="detail-label" for="detail-price">Prix unitaire (€)</label>
+    <input class="inp" id="detail-price" type="number" inputmode="decimal" min="0" step="0.01" value="${p?Number(p).toFixed(2):""}" placeholder="Ex. 2,49">
+    <div class="detail-label">Quantité souhaitée</div>
+    <div class="qty-control"><button class="icon-btn" data-detail-dec="1" aria-label="Diminuer">−</button><strong class="num">${detailQty}</strong><button class="icon-btn" data-detail-inc="1" aria-label="Augmenter">+</button></div>
+    <div class="detail-total">Total estimé : <strong class="num">${p?eur(p*detailQty):"—"}</strong></div>
+    <button class="btn detail-add" data-detail-add="1">Ajouter ${detailQty} au panier</button>
+    <button class="btn ghost detail-camera" data-photo="${esc(name)}">📷 Ajouter ma photo</button>
+  </section></div>`;
+}
 function productRow(name,cat){
   const c=CATS[cat]||CATS.au,f=inCart(name),fav=S.favs.includes(name),p=price(name);
   const own=!!(S.storeId&&S.storePrices?.[S.storeId]?.[name]!=null)||S.prices[name]!=null;
-  return `<div class="row">${thumb(name,cat)}
+  return `<div class="row product-row" data-product="${esc(name)}" data-product-cat="${cat}" role="button" tabindex="0" aria-label="Voir la fiche de ${esc(name)}">${thumb(name,cat)}
   <div class="txt"><div class="n">${esc(name)}</div><div class="s num">${p?(own?eur(p)+" · prix enregistré":"≈ "+eur(p)):c.n}${f?` · ${f.qty} au panier`:""}</div></div>
   <button class="star ${fav?"on":""}" data-fav="${esc(name)}" aria-label="${fav?"Retirer des":"Ajouter aux"} favoris">${fav?ICON.star:ICON.starO}</button>
   <button class="icon-btn" data-photo="${esc(name)}" aria-label="Photographier ${esc(name)}" title="Ajouter une photo">📷</button>
@@ -585,12 +605,28 @@ function render(){
   document.getElementById("app").innerHTML=v();
   const left=S.cart.filter(i=>!i.done).length;
   watchImages();
+  if(productDetail){document.getElementById("app").insertAdjacentHTML("beforeend",productDetailView());watchImages()}
   document.getElementById("tabs").innerHTML=TABS.map(([k,l,ic])=>`<button data-tab="${k}" ${S.tab===k?'aria-current="page"':""}>${ICON[ic]}${l}${k==="cart"&&left?`<span class="badge num">${left}</span>`:""}</button>`).join("");
 }
 
 /* ---------- Interactions ---------- */
 document.addEventListener("click",e=>{
-  const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+  if(e.target.closest("[data-detail-close]")){productDetail=null;render();return}
+  const b=e.target.closest("button");
+  if(!b){const row=e.target.closest("[data-product]");if(row){productDetail=row.dataset.product;detailQty=Math.max(1,inCart(productDetail)?.qty||1);render()}return}
+  const d=b.dataset;
+  if("detailInc" in d){detailQty=Math.min(999,detailQty+1);render();return}
+  if("detailDec" in d){detailQty=Math.max(1,detailQty-1);render();return}
+  if("detailAdd" in d){
+    const name=productDetail,raw=String(document.getElementById("detail-price")?.value||"").replace(",",".");
+    if(raw.trim()!==""&&Number.isFinite(Number(raw))){
+      const val=Math.round(Number(raw)*100)/100;
+      if(S.storeId){S.storePrices=S.storePrices||{};S.storePrices[S.storeId]=S.storePrices[S.storeId]||{};S.storePrices[S.storeId][name]=val}else S.prices[name]=val;
+    }
+    if(S.example){S.cart=[];S.example=false}
+    let item=inCart(name);if(item){item.qty+=detailQty;item.done=false}else S.cart.push({id:uid(),name,cat:catOf(name),qty:detailQty,done:false});
+    productDetail=null;save();render();toast(name+" ajouté au panier");return;
+  }
   if(d.tab||d.go){S.tab=d.tab||d.go;S.confirmClear=false;render();window.scrollTo(0,0);return}
   if(d.add){addItem(d.add,d.cat);return}
   if(d.photo){openProductCamera(d.photo);return}
