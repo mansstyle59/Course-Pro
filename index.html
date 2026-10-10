@@ -567,6 +567,13 @@ function vStores(){
     ${S.locMsg?`<div class="note">${esc(S.locMsg)}</div>`:""}
   </div>
   <p class="note">Du plus proche au plus loin de ${esc(S.loc.label)}, à vol d'oiseau.</p>
+  <div class="storecard"><div class="eyebrow">Catalogues officiels des drives</div><p class="note">Ouvre le site de l’enseigne pour choisir ton drive et consulter ses vrais produits et photos. Les assortiments et prix dépendent du magasin.</p><div class="list">
+    <div class="shop"><div class="n">🔵 Carrefour Drive</div><div class="acts"><a class="btn small" href="https://www.carrefour.fr/courses" target="_blank" rel="noopener">Catalogue officiel ↗</a></div></div>
+    <div class="shop"><div class="n">🔵 E.Leclerc Drive</div><div class="acts"><a class="btn small" href="https://www.leclercdrive.fr/mobile/" target="_blank" rel="noopener">Catalogue officiel ↗</a></div></div>
+    <div class="shop"><div class="n">🔴 Intermarché</div><div class="acts"><a class="btn small" href="https://www.intermarche.com/" target="_blank" rel="noopener">Site officiel ↗</a></div></div>
+    <div class="shop"><div class="n">🟢 Courses U</div><div class="acts"><a class="btn small" href="https://www.coursesu.com/" target="_blank" rel="noopener">Catalogue officiel ↗</a></div></div>
+    <div class="shop"><div class="n">🔴 Auchan Drive</div><div class="acts"><a class="btn small" href="https://www.auchan.fr/" target="_blank" rel="noopener">Site officiel ↗</a></div></div>
+  </div></div>
   <div class="chips">${f}</div>
   <div class="list">${list.length?list.map(card).join(""):`<div class="empty">Aucun magasin ne correspond à ce filtre pour le moment.</div>`}</div>
   ${S.customStores.length?`<div class="eyebrow">Mes autres magasins</div><div class="list">${S.customStores.map(card).join("")}</div>`:""}
