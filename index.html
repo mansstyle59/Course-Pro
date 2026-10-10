@@ -386,20 +386,30 @@ async function pumpImages(){
       let photo="";
       const plain=name.replace(/\([^)]*\)/g," ").replace(/\b(?:x\s?\d+|\d+(?:[,.]\d+)?\s?(?:g|kg|ml|cl|l))\b/gi," ").replace(/\s+/g," ").trim();
       const words=q.split(/\s+/).filter(w=>w.length>2);
-      const queries=[name,q,words.slice(0,4).join(" ")].filter((x,i,a)=>x&&a.indexOf(x)===i);
+      const queries=[name,q,plain,words.slice(0,4).join(" "),words.slice(-3).join(" ")].filter((x,i,a)=>x&&a.indexOf(x)===i);
       for(const query of queries){
+        // Recherche Open Food Facts, puis recherche complémentaire sur Wikimedia Commons.
         try{
-          const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
+          const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
           photo=bestProductImage(r.hits||r.products||[],name);
         }catch(e){}
         if(photo)break;
         try{
-          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url`);
+          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=20&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url`);
           photo=bestProductImage(r.products||[],name);
         }catch(e){}
         if(photo)break;
-        // Laisser souffler les API publiques entre plusieurs variantes de recherche.
-        await new Promise(r=>setTimeout(r,120));
+        await new Promise(r=>setTimeout(r,180));
+      }
+      // Dernière piste : Wikimedia Commons fournit parfois des photos génériques libres.
+      if(!photo){
+        try{
+          const r=await getJSON(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent("filetype:bitmap "+q+" food product")}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url&iiurlwidth=480&format=json&origin=*`);
+          const pages=Object.values(r.query?.pages||[]);
+          const tokens=q.toLowerCase().split(/\s+/).filter(t=>t.length>2);
+          const match=pages.map(p=>({p,score:tokens.filter(t=>p.title.toLowerCase().includes(t)).length/Math.max(1,tokens.length)})).sort((a,b)=>b.score-a.score)[0];
+          if(match&&match.score>=0.5){const info=match.p.imageinfo?.[0];photo=info?.thumburl||info?.url||""}
+        }catch(e){}
       }
       IMG[name]=photo||""; // mémorise aussi les absences pour éviter les requêtes répétées
       try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
