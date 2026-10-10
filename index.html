@@ -345,7 +345,7 @@ const CI={
  an:'<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3-5 5 0 1.5 1.5 2 2.5 2s1.5-.5 2.5-.5 1.5.5 2.5.5 2.5-.5 2.5-2c0-2-2-5-5-5z"/>',
  au:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>'
 };
-const IMGKEY="coursepro-img-v2";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
+const IMGKEY="coursepro-img-v3";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
 let imgOff=false;const imgQueue=[];let imgBusy=false;
 const catSvg=cat=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CI[cat]||CI.au}</svg>`;
 function thumb(name,cat,small){
@@ -388,7 +388,7 @@ async function pumpImages(){
       const words=q.split(/\s+/).filter(w=>w.length>2);
       const queries=[name,q,plain,words.slice(0,4).join(" "),words.slice(-3).join(" ")].filter((x,i,a)=>x&&a.indexOf(x)===i);
       for(const query of queries){
-        // Recherche Open Food Facts, puis recherche complémentaire sur Wikimedia Commons.
+        // Photos réelles de produits référencés par Open Food Facts. Aucun prix n’est déduit de la photo.
         try{
           const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
           photo=bestProductImage(r.hits||r.products||[],name);
@@ -401,16 +401,8 @@ async function pumpImages(){
         if(photo)break;
         await new Promise(r=>setTimeout(r,180));
       }
-      // Dernière piste : Wikimedia Commons fournit parfois des photos génériques libres.
-      if(!photo){
-        try{
-          const r=await getJSON(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent("filetype:bitmap "+q+" food product")}&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url&iiurlwidth=480&format=json&origin=*`);
-          const pages=Object.values(r.query?.pages||[]);
-          const tokens=q.toLowerCase().split(/\s+/).filter(t=>t.length>2);
-          const match=pages.map(p=>({p,score:tokens.filter(t=>p.title.toLowerCase().includes(t)).length/Math.max(1,tokens.length)})).sort((a,b)=>b.score-a.score)[0];
-          if(match&&match.score>=0.5){const info=match.p.imageinfo?.[0];photo=info?.thumburl||info?.url||""}
-        }catch(e){}
-      }
+      // Pas de photo générique en secours : mieux vaut laisser l’icône
+      // et proposer la photo personnelle que montrer un produit qui ne correspond pas.
       IMG[name]=photo||""; // mémorise aussi les absences pour éviter les requêtes répétées
       try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
       document.querySelectorAll(`.thumb[data-img="${CSS.escape(name)}"]`).forEach(el=>{el.removeAttribute("data-img");if(IMG[name]){const im=new Image();im.alt=`Photo du produit ${name}`;im.onerror=()=>{im.remove();};im.src=IMG[name];el.appendChild(im)}});
