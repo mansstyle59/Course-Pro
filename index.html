@@ -564,7 +564,17 @@ function vFavs(){
   </div>`;
 }
 
-function storeLogo(name){const n=norm(name);const file=s=>"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(s);if(n.includes("carrefour"))return file("Carrefour-Logo.svg");if(n.includes("leclerc"))return file("E.Leclerc logo.svg");if(n.includes("intermarche"))return file("Intermarché 2009 logo.svg");if(n.includes("lidl"))return file("Lidl-Logo.svg");if(n.includes("aldi"))return file("Aldi Logo on the outside of shops.svg");if(n.includes("auchan"))return file("Auchan Retail logo.svg");if(n==="super u"||n==="hyper u"||n==="u express"||n==="utile"||n.includes("courses u"))return "https://www.google.com/s2/favicons?domain=coursesu.com&sz=128";return "";}
+function storeLogo(name){
+  const n=norm(name);
+  const domain=n.includes('carrefour')?'carrefour.fr':n.includes('leclerc')?'e.leclerc':n.includes('intermarche')?'intermarche.com':n.includes('lidl')?'lidl.fr':n.includes('aldi')?'aldi.fr':n.includes('auchan')?'auchan.fr':(['super u','hyper u','u express','utile'].includes(n)||n.includes('courses u'))?'coursesu.com':'';
+  return domain?'https://www.google.com/s2/favicons?domain='+encodeURIComponent(domain)+'&sz=128':'';
+}
+function cleanStoreName(s){
+  const raw=String((s&&s.name)||'').trim().replace(/^[\\s·•.,–—-]+|[\\s·•.,–—-]+$/g,'');
+  if(raw&&raw!=='.'&&raw!=='•'&&raw!=='-')return raw;
+  const first=String((s&&s.addr)||'').split(',')[0].trim();
+  return first&&!/^\\d/.test(first)?first:'Magasin sans enseigne identifiée';
+}
 function vStores(){
   const query=norm(S.storeSearch||"").trim();
   let list=[...nearby()].filter(s=>!query||norm([s.name,s.town,s.addr,s.fmt].filter(Boolean).join(" ")).includes(query)).sort((a,b)=>(km(a)??1e9)-(km(b)??1e9));
@@ -572,7 +582,7 @@ function vStores(){
   if(S.storeFilter==="disc")list=list.filter(s=>s.fmt==="Discount");
   const f=[["all","Tous"],["open","Ouverts maintenant"],["disc","Discount"]].map(([k,l])=>`<button class="chip" data-sf="${k}" aria-pressed="${S.storeFilter===k}">${l}</button>`).join("");
   const card=s=>`<div class="shop ${s.id===S.storeId?"sel":""}">
-    <div class="l1"><div class="txt"><div class="n">${storeLogo(s.name)?'<img class="brand-logo" src="'+storeLogo(s.name)+'" alt="" loading="lazy">':''}${esc(s.name)} ${s.town?`<span style="font-weight:500">· ${esc(s.town)}</span>`:""}</div><div class="s">${esc(s.addr||"Magasin ajouté par vous")}</div></div>${km(s)!=null?`<div class="km num">${kmTxt(s)}</div>`:""}</div>
+    <div class="l1"><div class="txt"><div class="n">${storeLogo(s.name)?'<img class="brand-logo" src="'+storeLogo(s.name)+'" alt="" loading="lazy">':''}${esc(cleanStoreName(s))} ${s.town?`<span style="font-weight:500">· ${esc(s.town)}</span>`:""}</div><div class="s">${esc(s.addr||"Magasin ajouté par vous")}</div></div>${km(s)!=null?`<div class="km num">${kmTxt(s)}</div>`:""}</div>
     <div class="meta">${pillStatus(s)}${s.fmt?`<span class="pill fmt">${s.fmt}</span>`:""}${s.tel?`<span class="note num">${esc(s.tel)}</span>`:""}</div>
     ${todayHours(s)?`<div class="note">${todayHours(s)}</div>`:""}
     <div class="acts">${s.id===S.storeId?`<span class="btn small" aria-disabled="true">✓ Mon magasin</span>`:`<button class="btn small" data-pick="${esc(s.id)}">Choisir ce magasin</button>`}${s.lat?`<a class="btn small ghost" href="${maps(s)}" target="_blank" rel="noopener">Itinéraire</a>`:""}${s.custom?`<button class="btn small warn" data-delstore="${s.id}">Retirer</button>`:""}</div>
