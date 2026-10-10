@@ -354,10 +354,10 @@ function thumb(name,cat,small){
   return `<div class="thumb${small?" sm":""}" style="--c:${c}" ${want?`data-img="${esc(name)}"`:""}>${catSvg(cat)}${url?`<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
 }
 function imageQueryName(name){
-  return name.replace(/\\([^)]*\\)/g," ").replace(/\\b(x\\d+|\\d+(?:[,.]\\d+)?\\s?(?:g|kg|ml|cl|l)?)\\b/gi," ").replace(/[–—]/g," ").replace(/\\s+/g," ").trim();
+  return name.replace(/\([^)]*\)/g," ").replace(/\b(x\d+|\d+(?:[,.]\d+)?\s?(?:g|kg|ml|cl|l)?)\b/gi," ").replace(/[–—]/g," ").replace(/\s+/g," ").trim();
 }
 function imageMatchScore(wanted,candidate){
-  const clean=x=>imageQueryName(String(x||"")).toLocaleLowerCase("fr").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").split(/\\s+/).filter(t=>t.length>1);
+  const clean=x=>imageQueryName(String(x||"")).toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(t=>t.length>1);
   const a=clean(wanted),b=clean(candidate);
   if(!a.length||!b.length)return 0;
   const stop=new Set(["produit","frais","fraiche","frais","nature","original","france","format"]);
@@ -384,7 +384,7 @@ async function pumpImages(){
     try{
       const q=imageQueryName(name);
       let photo="";
-      const queries=[q,name.replace(/\\([^)]*\\)/g," ").trim()].filter((x,i,a)=>x&&a.indexOf(x)===i);
+      const queries=[q,name.replace(/\([^)]*\)/g," ").trim()].filter((x,i,a)=>x&&a.indexOf(x)===i);
       for(const query of queries){
         try{
           const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
