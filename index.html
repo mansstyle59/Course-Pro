@@ -689,7 +689,7 @@ function vHome(){
 }
 function nearbyStoresPanel(){
   const list=[...nearby()].sort((a,b)=>(km(a)??1e9)-(km(b)??1e9)).slice(0,7);
-  return `<section class="glass-panel nearby-panel"><div class="section-title"><span class="pin-disc">${ICON.pin}</span><b>Magasins près de ${esc(S.loc.label.split(" (")[0]||"vous")}</b><button class="mini-link" data-go="stores">Voir tout ›</button></div><div class="store-tiles">${list.map(s=>`<button class="store-tile" data-pick="${esc(s.id)}"><span class="tile-logo">${storeLogo(s.name)?`<img src="${storeLogo(s.name)}" alt="${esc(cleanStoreName(s))}" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;logo-fallback&quot;>'+('${esc(cleanStoreName(s))}'.split(' ').map(x=>x[0]).join('').slice(0,3))+'</span>'">`:`<span class="logo-fallback">${esc(cleanStoreName(s).split(" ").map(x=>x[0]).join("").slice(0,3))}</span>`}</span><b>${esc(shortStoreName(s.name))}</b><small>${km(s)!=null?kmTxt(s):"Distance n/d"}</small></button>`).join("")}</div></section>`;
+  return `<section class="glass-panel nearby-panel"><div class="section-title"><span class="pin-disc">${ICON.pin}</span><b>Magasins près de ${esc(S.loc.label.split(" (")[0]||"vous")}</b><button class="mini-link" data-go="stores">Voir tout ›</button></div><div class="store-tiles">${list.map(s=>`<button class="store-tile" data-pick="${esc(s.id)}"><span class="tile-logo">${storeLogo(s.name)?`<img src="${storeLogo(s.name)}" alt="${esc(cleanStoreName(s))}" loading="lazy" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain='+encodeURIComponent('${esc(cleanStoreName(s))}')+'&sz=128';this.classList.add('logo-fallback-img')">`:`<span class="logo-fallback">${esc(cleanStoreName(s).split(" ").map(x=>x[0]).join("").slice(0,3))}</span>`}</span><b>${esc(shortStoreName(s.name))}</b><small>${km(s)!=null?kmTxt(s):"Distance n/d"}</small></button>`).join("")}</div></section>`;
 }
 function categoryHeroChips(){
  const items=[["all","Tout","▦"],["fl","Fruits et légumes","♧"],["vp","Viandes et poissons","♨"],["cr","Produits laitiers","♜"],["es","Épicerie salée","◈"],["su","Épicerie sucrée","✿"],["bo","Boulangerie","⌁"]];
@@ -748,8 +748,19 @@ function vFavs(){
 
 function storeLogo(name){
   const n=norm(name);
-  if(n.includes('carrefour'))return 'https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/carrefour/default.svg';
-  const domain=n.includes('leclerc')?'e.leclerc':n.includes('intermarche')?'intermarche.com':n.includes('lidl')?'lidl.fr':n.includes('aldi')?'aldi.fr':n.includes('auchan')?'auchan.fr':(['super u','hyper u','u express','utile'].includes(n)||n.includes('courses u'))?'coursesu.com':'';
+  // Logos de marque en SVG/PNG sur des sources publiques stables; favicon officiel en secours.
+  const logos=[
+    [/carrefour/,'https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/carrefour/default.svg','www.carrefour.fr'],
+    [/lidl/,'https://cdn.simpleicons.org/lidl/0050AA','www.lidl.fr'],
+    [/inter.?marche/,'https://cdn.simpleicons.org/intermarche/E30613','www.intermarche.com'],
+    [/leclerc/,'https://cdn.simpleicons.org/eleclerc/0066B3','www.e.leclerc'],
+    [/(super u|hyper u|u express|utile|courses u|^u$)/,'https://cdn.simpleicons.org/unes/CC0033','www.magasins-u.com'],
+    [/aldi/,'https://cdn.simpleicons.org/aldi/0077C8','www.aldi.fr'],
+    [/auchan/,'https://cdn.simpleicons.org/auchan/E31837','www.auchan.fr']
+  ];
+  const match=logos.find(([re])=>re.test(n));
+  if(match)return match[1];
+  const domain=n.includes('casino')?'www.casino.fr':n.includes('monoprix')?'www.monoprix.fr':n.includes('netto')?'www.netto.fr':'';
   return domain?'https://www.google.com/s2/favicons?domain='+encodeURIComponent(domain)+'&sz=128':'';
 }
 function cleanStoreName(s){
@@ -765,7 +776,7 @@ function vStores(){
   if(S.storeFilter==="disc")list=list.filter(s=>s.fmt==="Discount");
   const f=[["all","Tous"],["open","Ouverts maintenant"],["disc","Discount"]].map(([k,l])=>`<button class="chip" data-sf="${k}" aria-pressed="${S.storeFilter===k}">${l}</button>`).join("");
   const card=s=>`<div class="shop ${s.id===S.storeId?"sel":""}">
-    <div class="l1"><div class="txt"><div class="n">${storeLogo(s.name)?'<img class="brand-logo" src="'+storeLogo(s.name)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':''}${esc(cleanStoreName(s))} ${s.town?`<span style="font-weight:500">· ${esc(s.town)}</span>`:""}</div><div class="s">${esc(s.addr||"Magasin ajouté par vous")}</div></div>${km(s)!=null?`<div class="km num">${kmTxt(s)}</div>`:""}</div>
+    <div class="l1"><div class="txt"><div class="n">${storeLogo(s.name)?'<img class="brand-logo" src="'+storeLogo(s.name)+'" alt="'+esc(cleanStoreName(s))+'" loading="lazy" onerror="this.onerror=null;this.src=\'https://www.google.com/s2/favicons?domain=\'+encodeURIComponent(\''+esc(cleanStoreName(s))+\'')+\'&sz=128\'">':''}${esc(cleanStoreName(s))} ${s.town?`<span style="font-weight:500">· ${esc(s.town)}</span>`:""}</div><div class="s">${esc(s.addr||"Magasin ajouté par vous")}</div></div>${km(s)!=null?`<div class="km num">${kmTxt(s)}</div>`:""}</div>
     <div class="meta">${pillStatus(s)}${s.fmt?`<span class="pill fmt">${s.fmt}</span>`:""}${s.tel?`<span class="note num">${esc(s.tel)}</span>`:""}</div>
     ${todayHours(s)?`<div class="note">${todayHours(s)}</div>`:""}
     <div class="acts">${s.id===S.storeId?`<span class="btn small" aria-disabled="true">✓ Mon magasin</span>`:`<button class="btn small" data-pick="${esc(s.id)}">Choisir ce magasin</button>`}${s.lat?`<a class="btn small ghost" href="${maps(s)}" target="_blank" rel="noopener">Itinéraire</a>`:""}${s.custom?`<button class="btn small warn" data-delstore="${s.id}">Retirer</button>`:""}</div>
