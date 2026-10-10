@@ -232,7 +232,7 @@ const KEY="coursepro-v2";
 const uid=()=>Math.random().toString(36).slice(2,10);
 const catOf=name=>{for(const k in CATS)if(CATS[k].items.some(i=>i[0]===name))return k;return"au"};
 const basePrice=name=>{for(const k in CATS){const f=CATS[k].items.find(i=>i[0]===name);if(f)return f[1]}return 0};
-let S={tab:"home",storeId:null,storeSnap:null,customStores:[],loc:{...HOME},liveStores:null,locBusy:false,locMsg:"",budget:80,cat:"all",q:"",storeFilter:"all",
+let S={tab:"home",storeId:null,storeSnap:null,customStores:[],loc:{...HOME},liveStores:null,locBusy:false,locMsg:"",budget:80,cat:"all",q:"",storeFilter:"all",storeSearch:"",
   cart:[],favs:["Baguette tradition","Lactel lait demi-écrémé (1 L)","Carte Noire café moulu (250 g)","Bananes (1 kg)","Président beurre doux (250 g)"],
   prices:{},storePrices:{},counts:{},history:[],confirmClear:false,example:true};
 S.cart=[["Bananes (1 kg)",1],["Lactel lait demi-écrémé (1 L)",2],["Baguette tradition",2],["Panzani spaghetti (500 g)",2],["Carte Noire café moulu (250 g)",1],["Loué œufs plein air (x12)",1],["Cristaline eau (6x1,5 L)",1]].map(([n,q])=>({id:uid(),name:n,cat:catOf(n),qty:q,done:false}));
@@ -243,7 +243,7 @@ try{
 }catch(e){}
 const save=()=>{try{const{tab,q,confirmClear,locBusy,locMsg,...d}=S;localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
 
-const nearby=()=>S.liveStores||STORES;
+const nearby=()=>{const raw=[...(S.liveStores||[]),...STORES,...S.customStores];const seen=new Set();return raw.filter(x=>{const k=x.id||norm(x.name)+"|"+norm(x.town||"");if(seen.has(k))return false;seen.add(k);return true})};
 const allStores=()=>[...nearby(),...STORES,...S.customStores];
 const store=()=>{if(!S.storeId)return null;const f=allStores().find(s=>s.id===S.storeId);return f||S.storeSnap||null};
 function pickStore(id){const s=allStores().find(x=>x.id===id);if(!s)return;S.storeId=id;S.storeSnap=s;save();render();toast(`Magasin choisi : ${storeLabel(s)}`)}
@@ -252,21 +252,21 @@ function pickStore(id){const s=allStores().find(x=>x.id===id);if(!s)return;S.sto
 async function getJSON(url,opts,timeoutMs=10000){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),timeoutMs);try{const r=await fetch(url,{...opts,signal:ctl.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json()}finally{clearTimeout(t)}}
 async function loadStoresAround(){
   const{lat,lng}=S.loc;
-  const radius=50000;
-  const q=`[out:json][timeout:25];nwr["shop"~"^(supermarket|convenience|discount)$"]["name"](around:${radius},${lat},${lng});out center tags;`;
+  const radius=100000;
+  const q=`[out:json][timeout:25];nwr["shop"~"^(supermarket|convenience|discount|greengrocer|butcher|bakery)$"]["name"](around:${radius},${lat},${lng});out center tags;`;
   const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter"];
   let lastError=null;
   for(const endpoint of endpoints){
     try{
-      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},8500);
+      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},12000);
       const seen=new Set();
       const list=(j.elements||[]).map(fromOSM).filter(s=>{
         if(!s.name||s.lat==null)return false;
         const key=norm(s.name)+"|"+norm(s.town||"")+"|"+(s.lat.toFixed(4))+","+(s.lng.toFixed(4));
         if(seen.has(key))return false;seen.add(key);return true;
-      }).sort((a,b)=>km(a)-km(b)).slice(0,100);
+      }).sort((a,b)=>km(a)-km(b)).slice(0,300);
       S.liveStores=list;
-      S.locMsg=list.length?`${list.length} magasins trouvés dans un rayon de 50 km, triés par distance.`:"Aucun magasin trouvé dans un rayon de 50 km. Vérifiez votre position ou ajoutez un magasin.";
+      S.locMsg=list.length?`${list.length} magasins trouvés dans un rayon de 100 km, triés par distance.`:"Aucun magasin trouvé dans un rayon de 100 km. Vérifiez votre position ou ajoutez un magasin.";
       return;
     }catch(e){lastError=e}
   }
@@ -545,7 +545,8 @@ function vFavs(){
 }
 
 function vStores(){
-  let list=[...nearby()].sort((a,b)=>(km(a)??1e9)-(km(b)??1e9));
+  const query=norm(S.storeSearch||"").trim();
+  let list=[...nearby()].filter(s=>!query||norm([s.name,s.town,s.addr,s.fmt].filter(Boolean).join(" ")).includes(query)).sort((a,b)=>(km(a)??1e9)-(km(b)??1e9));
   if(S.storeFilter==="open")list=list.filter(s=>status(s)?.open);
   if(S.storeFilter==="disc")list=list.filter(s=>s.fmt==="Discount");
   const f=[["all","Tous"],["open","Ouverts maintenant"],["disc","Discount"]].map(([k,l])=>`<button class="chip" data-sf="${k}" aria-pressed="${S.storeFilter===k}">${l}</button>`).join("");
@@ -558,6 +559,7 @@ function vStores(){
   const towns=TOWNS.map(t=>`<button class="chip" data-town="${t[0]}">${t[0]}</button>`).join("");
   return `<div class="view"><h1>Magasins</h1>
   <div class="storecard" aria-live="polite">
+    <div class="eyebrow">Rechercher un magasin</div><input class="inp" id="storesearch" value="${esc(S.storeSearch||"")}" placeholder="Nom, enseigne ou ville (ex. Leclerc)" aria-label="Rechercher un magasin" autocomplete="off">
     <div class="top"><span style="color:var(--accent);flex:none;width:26px">${ICON.pin}</span><div class="txt"><div class="eyebrow">Ma position</div><div class="n">${esc(S.loc.label)}</div><div class="s">${S.loc.mode==="gps"?"Localisé par GPS":S.loc.mode==="ville"?"Choisie à la main":"Position par défaut"}</div></div></div>
     <button class="btn" data-gps ${S.locBusy?"disabled":""}>${S.locBusy?"Recherche en cours…":"Me localiser"}</button>
     <form class="add-row" id="cityform"><input class="inp" id="city" placeholder="Ville ou code postal" autocomplete="off" aria-label="Ville ou code postal"><button class="btn ghost" ${S.locBusy?"disabled":""}>OK</button></form>
@@ -663,6 +665,7 @@ document.addEventListener("click",e=>{
 let searchRenderTimer=null;
 document.addEventListener("input",e=>{
   if(e.target.id==="q"){S.q=e.target.value;clearTimeout(searchRenderTimer);const value=S.q;searchRenderTimer=setTimeout(()=>{if(S.q!==value)return;const q=document.getElementById("q");if(!q)return;const pos=q.selectionStart;render();const next=document.getElementById("q");if(next){next.focus({preventScroll:true});next.setSelectionRange(pos,pos)}},180)}
+  if(e.target.id==="storesearch"){S.storeSearch=e.target.value;const pos=e.target.selectionStart;clearTimeout(storeSearchTimer);storeSearchTimer=setTimeout(()=>{const el=document.getElementById("storesearch");if(!el)return;render();const next=document.getElementById("storesearch");if(next){next.focus({preventScroll:true});next.setSelectionRange(pos,pos)}},120)}
   if(e.target.id==="detail-price"){detailPriceDraft=e.target.value}
   if(e.target.id==="budget"){const raw=String(e.target.value).replace(",",".");if(raw.trim()!==""&&Number.isFinite(Number(raw))){S.budget=Math.max(0,Math.round(Number(raw)*100)/100);save()}}
 });
