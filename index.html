@@ -264,12 +264,11 @@ async function getJSON(url,opts,timeoutMs=10000){const ctl=new AbortController()
 async function loadStoresAround(){
   const{lat,lng}=S.loc;
   const radius=100000;
-  const q=`[out:json][timeout:25];nwr["shop"~"^(supermarket|convenience|discount|greengrocer|butcher|bakery)$"]["name"](around:${radius},${lat},${lng});out center tags;`;
+  const q=\`[out:json][timeout:12];nwr["shop"~"^(supermarket|convenience|discount|greengrocer|butcher|bakery)$"]["name"](around:\${radius},\${lat},\${lng});out center tags;\`;
   const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://overpass.private.coffee/api/interpreter"];
-  let lastError=null;
   for(const endpoint of endpoints){
     try{
-      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},12000);
+      const j=await getJSON(endpoint,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},6000);
       const seen=new Set();
       const list=(j.elements||[]).map(fromOSM).filter(s=>{
         if(!s.name||s.lat==null)return false;
@@ -277,30 +276,20 @@ async function loadStoresAround(){
         if(seen.has(key))return false;seen.add(key);return true;
       }).sort((a,b)=>km(a)-km(b)).slice(0,300);
       S.liveStores=list;
-      S.locMsg=list.length?`${list.length} magasins trouvés dans un rayon de 100 km, triés par distance.`:"Aucun magasin trouvé dans un rayon de 100 km. Vérifiez votre position ou ajoutez un magasin.";
+      S.locMsg=list.length?\`\${list.length} magasins trouvés dans un rayon de 100 km, triés par distance.\`:"Aucun magasin trouvé dans un rayon de 100 km. Vérifiez votre position ou ajoutez un magasin.";
       return;
-    }catch(e){lastError=e}
+    }catch(e){}
   }
   S.liveStores=null;
   const near=STORES.some(s=>km(s)<50);
   S.locMsg=near?"Recherche en ligne indisponible pour le moment. Les magasins déjà enregistrés restent affichés. Réessayez dans quelques instants.":"La recherche des magasins a échoué temporairement. Vérifiez la ville choisie ou réessayez plus tard.";
 }
-async function setLoc(loc){S.loc=loc;S.locBusy=true;render();await loadStoresAround();S.locBusy=false;save();render()}
-function locateGPS(){
-  if(!navigator.geolocation){S.locMsg="Ce navigateur ne donne pas accès au GPS. Choisissez votre ville ci-dessous.";render();return}
-  S.locBusy=true;S.locMsg="Recherche de votre position…";render();
-  let done=false;
-  const fail=msg=>{if(done)return;done=true;S.locBusy=false;S.locMsg=msg;render()};
-  const guard=setTimeout(()=>fail("La position n'a pas pu être obtenue. Choisissez votre ville ci-dessous."),15000);
+async function setLoc(loc){
+  S.loc=loc;S.locBusy=true;S.locMsg="Position trouvée, chargement des magasins…";render();
   try{
-    navigator.geolocation.getCurrentPosition(async p=>{
-      if(done)return;done=true;clearTimeout(guard);
-      const lat=p.coords.latitude,lng=p.coords.longitude,accuracy=Math.round(p.coords.accuracy||0);let label="Ma position";
-      try{const r=await getJSON(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=14&accept-language=fr&lat=${lat}&lon=${lng}`);const a=r.address||{};label=[a.village||a.town||a.city||a.municipality,a.postcode&&`(${a.postcode})`].filter(Boolean).join(" ")||label}
-      catch(e){const t=TOWNS.map(t=>({t,k:dist({lat,lng},{lat:t[2],lng:t[3]})})).sort((a,b)=>a.k-b.k)[0];if(t.k<4)label=`${t.t[0]} (${t.t[1]})`}
-      S.locAccuracy=accuracy;setLoc({lat,lng,label,mode:"gps"});
-    },err=>{clearTimeout(guard);fail(err.code===1?"La localisation est refusée. Autorisez-la pour ce site dans les réglages de votre téléphone (Réglages > Confidentialité > Service de localisation > Safari), ou choisissez votre ville ci-dessous.":"La position n'a pas pu être obtenue. Choisissez votre ville ci-dessous.")},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-  }catch(e){clearTimeout(guard);fail("Le GPS n'est pas disponible ici. Choisissez votre ville ci-dessous.")}
+    await Promise.race([loadStoresAround(),new Promise(resolve=>setTimeout(()=>{S.locMsg="La recherche en ligne prend trop de temps. Les magasins déjà enregistrés restent disponibles ; réessayez dans un instant.";resolve()},16000))]);
+  }catch(e){S.locMsg="La position est enregistrée, mais le chargement des magasins a échoué. Réessayez."}
+  finally{S.locBusy=false;save();render()}
 }
 async function searchStoreOnline(){
   const query=(S.storeSearch||"").trim();
