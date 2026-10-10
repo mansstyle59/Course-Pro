@@ -1,1 +1,578 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Course Pro</title></head><body><main><h1>Course Pro</h1><p>Cette page sera remplacée par le fichier original.</p></main></body></html>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Course Pro 1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout : appli une colonne, barre d'onglets fixe en bas, contenu qui défile */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --fg:#17231c; --muted:#5f6d64; --line:#dde3dc;
+  --accent:#1f6b47; --on-accent:#ffffff; --accent-soft:#e1efe6; --mustard:#e2a72e; --mustard-soft:#fbf0d6;
+  --danger:#b8442c; --danger-soft:#f8e3dd; --ok:#2f8a57;
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18211c; --fg:#e8eee9; --muted:#97a69c; --line:#2a3630;
+  --accent:#5cc28d; --on-accent:#0f1512; --accent-soft:#1d3428; --mustard:#f0bf55; --mustard-soft:#3a3020;
+  --danger:#ee8a72; --danger-soft:#3a221c; --ok:#5cc28d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18211c; --fg:#e8eee9; --muted:#97a69c; --line:#2a3630;
+  --accent:#5cc28d; --on-accent:#0f1512; --accent-soft:#1d3428; --mustard:#f0bf55; --mustard-soft:#3a3020;
+  --danger:#ee8a72; --danger-soft:#3a221c; --ok:#5cc28d; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--accent);font-weight:600}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:20px 110px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.2rem;font-weight:700}
+.eyebrow{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.view{display:flex;flex-direction:column;gap:18px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.num{font-variant-numeric:tabular-nums}
+.note{font-size:.82rem;color:var(--muted)}
+
+/* Accueil */
+.hero{background:var(--accent);color:var(--on-accent);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.hero .eyebrow{color:inherit;opacity:.8}
+.hero .big{font-family:var(--display);font-size:2.6rem;font-weight:800;line-height:1}
+.hero-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bar{height:10px;border-radius:99px;background:color-mix(in srgb,var(--on-accent) 25%,transparent);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--mustard);border-radius:99px;transition:width .3s}
+.bar i.over{background:var(--danger)}
+.storecard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.storecard .top{display:flex;gap:12px;align-items:flex-start}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.85rem;font-weight:600;color:var(--muted)}
+.field input,.inp{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:12px;padding:12px 14px;font:inherit;width:100%;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat b{display:block;font-family:var(--display);font-size:1.5rem}
+.btn{border:0;border-radius:14px;padding:13px 18px;font-weight:700;background:var(--accent);color:var(--on-accent);text-align:center;text-decoration:none;display:inline-block}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.small{padding:9px 14px;font-size:.9rem;border-radius:11px}
+.btn.warn{background:transparent;color:var(--danger);padding:8px 4px}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* Pastilles d'état */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:3px 9px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.pill.open{background:var(--accent-soft);color:var(--ok)}
+.pill.closed{background:var(--danger-soft);color:var(--danger)}
+.pill.fmt{background:var(--mustard-soft);color:var(--fg)}
+.pill.open::before,.pill.closed::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* Recherche */
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px;position:sticky;top:env(safe-area-inset-top,0px);z-index:2}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:inherit;padding:14px 0}
+.search input:focus{outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:8px 14px;font-weight:600;font-size:.9rem}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.sel{background:var(--accent-soft)}
+.dot{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:.95rem;color:#fff}
+.thumb{flex:none;width:48px;height:48px;border-radius:13px;background:color-mix(in srgb,var(--c) 16%,var(--surface));color:var(--c);display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb svg{width:28px;height:28px}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff;padding:3px}
+.thumb.sm{width:38px;height:38px;border-radius:11px}.thumb.sm svg{width:22px;height:22px}
+.txt{flex:1;min-width:0}
+.txt .n{font-weight:600;overflow-wrap:anywhere}
+.txt .s{font-size:.85rem;color:var(--muted)}
+.icon-btn{flex:none;width:38px;height:38px;border-radius:12px;border:0;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:1.3rem;font-weight:700}
+.icon-btn.in{background:var(--accent);color:var(--on-accent)}
+.star{flex:none;border:0;background:none;width:34px;height:38px;color:var(--muted);opacity:.5;display:grid;place-items:center}
+.star.on{color:var(--mustard);opacity:1}
+.star svg{width:20px;height:20px}
+
+/* Magasins */
+.shop{display:flex;flex-direction:column;gap:8px;padding:14px;border-top:1px solid var(--line)}
+.shop:first-child{border-top:0}
+.shop .l1{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.shop .km{font-family:var(--display);font-weight:700;white-space:nowrap}
+.shop .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.shop .acts{display:flex;gap:8px;flex-wrap:wrap}
+.shop.sel{background:var(--accent-soft)}
+
+/* Panier */
+.aisle{display:flex;flex-direction:column;gap:8px}
+.check{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--muted);background:transparent;display:grid;place-items:center;padding:0}
+.check.on{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.row.done .n{text-decoration:line-through;color:var(--muted)}
+.qty{display:flex;align-items:center;gap:6px;flex:none}
+.qty button{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-weight:700}
+.qty span{min-width:22px;text-align:center;font-weight:700}
+.pin{display:inline-flex;align-items:center;gap:2px;font-size:.85rem;color:var(--muted)}
+.pin input{width:64px;border:1px dashed var(--line);background:transparent;color:var(--fg);border-radius:7px;padding:2px 5px;font:inherit;font-size:.85rem;text-align:right}
+.pin input.edited{border-style:solid;border-color:var(--mustard)}
+.totals{background:var(--mustard-soft);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.totals div{display:flex;justify-content:space-between;gap:10px}
+.totals .t{font-family:var(--display);font-size:1.35rem;font-weight:800}
+.empty{text-align:center;padding:30px 16px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty svg{width:64px;height:64px;color:var(--accent)}
+.add-row{display:flex;gap:8px}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--danger);border-radius:14px;padding:12px}
+
+/* Onglets */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{border:0;background:none;padding:10px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.72rem;font-weight:600;color:var(--muted);position:relative}
+nav button svg{width:24px;height:24px}
+nav button[aria-current="page"]{color:var(--accent)}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--danger);color:var(--surface);border-radius:99px;font-size:.68rem;min-width:18px;padding:1px 5px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.9rem;z-index:9;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main id="app"></main>
+<nav><div class="in" id="tabs"></div></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- Catalogue : vrais produits, prix indicatifs (constatés en France, peuvent varier) ---------- */
+const RAW = {
+ fl:["Fruits et légumes","#3f8f3a",["*Bananes (1 kg)|1.99","*Pommes Golden (1 kg)|2.49","*Pommes Pink Lady (1 kg)|3.99","*Poires Conférence (1 kg)|2.99","*Oranges à jus (2 kg)|3.99","*Clémentines (1 kg)|2.99","*Citrons (x4)|1.79","*Kiwis (x6)|2.49","*Raisin blanc (500 g)|2.49","*Fraises (250 g)|2.99","*Melon charentais|2.49","*Avocats (x2)|1.99","*Tomates grappe (1 kg)|2.99","*Tomates cerises (250 g)|1.69","*Concombre|0.99","*Courgettes (1 kg)|2.29","*Aubergines (500 g)|1.99","*Poivrons tricolores (x3)|2.49","*Brocoli|1.79","*Chou-fleur|2.49","*Haricots verts frais (500 g)|2.99","*Carottes (1 kg)|1.29","*Pommes de terre (2,5 kg)|3.49","*Patates douces (1 kg)|2.99","*Oignons jaunes (1 kg)|1.49","*Échalotes (500 g)|1.99","*Ail (x3 têtes)|1.49","*Poireaux (1 kg)|2.49","*Salade batavia|0.99","*Mâche (100 g)|1.49","*Champignons de Paris (250 g)|1.69","*Persil frais (botte)|0.99","Bonduelle salade iceberg|1.29"]],
+ vp:["Viandes et poissons","#b8442c",["Charal steaks hachés 5% (4x100 g)|5.49","Charal steaks hachés 15% (10x100 g)|10.99","Le Gaulois aiguillettes de poulet (300 g)|5.49","Le Gaulois escalopes de dinde (x4)|6.49","Maître Coq cuisses de poulet (1 kg)|5.49","*Poulet fermier Label Rouge (1,5 kg)|11.99","*Côtes de porc (x4)|5.99","*Rôti de porc (1 kg)|8.99","*Saucisses de Toulouse (x6)|4.49","*Merguez (x6)|4.29","*Bœuf bourguignon (1 kg)|12.99","*Entrecôte (x2)|12.49","*Cuisses de canard confites (x2)|8.99","Père Dodu cordons bleus (x2)|2.99","Herta lardons fumés (2x75 g)|2.49","*Pavés de saumon (x2)|6.99","*Filets de cabillaud (400 g)|8.49","*Crevettes cuites (200 g)|5.49","Labeyrie saumon fumé (4 tr.)|6.49","Fleury Michon surimi (x12)|2.99"]],
+ ch:["Charcuterie et traiteur","#c2703d",["Herta Le Bon Paris jambon (4 tr.)|3.49","Fleury Michon jambon supérieur (4 tr.)|3.29","Madrange jambon de Paris (6 tr.)|3.99","Herta Knacki (x10)|3.79","Justin Bridou saucisson|3.49","Aoste jambon cru (6 tr.)|3.69","Isla Délice blanc de dinde (4 tr.)|2.99","Buitoni raviolis pur bœuf|2.99","William Saurin cassoulet|4.29","Garbit taboulé oriental (1 kg)|3.99","Marie hachis parmentier|4.49","Fleury Michon pâtes carbonara|3.99","Hénaff pâté (3x78 g)|3.29","Maggi pizza fraîche jambon fromage|3.49"]],
+ cr:["Crèmerie","#d39b1c",["Lactel lait demi-écrémé (1 L)|1.19","Lactel lait demi-écrémé (6x1 L)|6.99","Candia lait entier (1 L)|1.29","Président beurre doux (250 g)|2.99","Paysan Breton beurre demi-sel (250 g)|3.19","Président camembert|2.39","Entremont emmental râpé (200 g)|2.39","*Comté AOP (200 g)|3.99","Roquefort Société (100 g)|3.49","Chavroux bûche de chèvre|2.99","Galbani mozzarella|1.49","Babybel (x6)|2.99","La Vache qui rit (x16)|2.89","Kiri (x8)|2.69","Saint Môret (150 g)|2.49","Elle & Vire crème fraîche épaisse (20 cl)|1.59","Président crème liquide (20 cl)|1.39","Danone Activia nature (x4)|2.29","Danone yaourts nature (x8)|2.39","Yoplait Panier fruits (x8)|3.49","Danette chocolat (x4)|2.19","Gervais petits suisses (x6)|1.99","La Laitière crème caramel (x4)|2.49","Loué œufs plein air (x12)|4.49","Cocorette œufs plein air (x6)|2.59"]],
+ bo:["Boulangerie","#a8703a",["*Baguette tradition|1.20","*Pain de campagne|2.20","Harrys American Sandwich pain de mie|2.29","Harrys brioche tranchée|2.49","Pasquier pains au lait (x10)|2.29","*Croissants (x6)|2.99","*Pains au chocolat (x6)|3.29","Heudebert biscottes|1.79","Jacquet pain de mie complet|2.19","Old El Paso tortillas (x8)|2.79"]],
+ es:["Épicerie salée","#5c6bc0",["Panzani spaghetti (500 g)|1.29","Barilla penne rigate (500 g)|1.49","Lustucru coquillettes (500 g)|1.39","Lustucru gnocchi (500 g)|2.29","Taureau Ailé riz basmati (1 kg)|3.49","Ben's Original riz long (1 kg)|3.29","Tipiak couscous moyen (500 g)|1.79","Panzani sauce tomate basilic|1.99","Barilla pesto alla genovese|2.99","Heinz ketchup|2.99","Amora mayonnaise|2.49","Amora moutarde de Dijon|2.29","Lesieur Isio 4 huile (1 L)|3.49","Puget huile d'olive (1 L)|9.49","Vinaigre de vin Maille|1.99","Petit Navire thon au naturel (3x80 g)|4.49","Saupiquet sardines à l'huile d'olive|2.19","Bonduelle petits pois carottes|1.59","Bonduelle maïs (x3)|2.69","Cassegrain haricots verts extra-fins|2.39","Knorr bouillon de volaille (x8)|1.99","Maggi arôme (160 g)|2.49","La Baleine sel fin|0.99","Ducros poivre noir moulu|2.49","Ducros herbes de Provence|2.29","Liebig mouliné de légumes (1 L)|2.79","Mutti purée de tomates (690 g)|1.89"]],
+ ap:["Apéritif","#7a5c3e",["Lu Tuc original|1.99","Bénénuts cacahuètes (200 g)|2.49","Pringles original|2.79","Lay's chips nature|2.49","Vico chips à l'ancienne|2.29","Monique Ranou mini saucissons|3.29","Tramier olives vertes|2.29","Belin Monaco|2.19"]],
+ su:["Épicerie sucrée","#8e4a8c",["Carte Noire café moulu (250 g)|3.99","L'Or Espresso capsules (x10)|3.49","Nescafé Spécial Filtre (200 g)|6.49","Grand'Mère café moulu (250 g)|3.79","Lipton Yellow Label thé (x25)|2.29","Éléphant tisane verveine (x25)|2.49","Banania (400 g)|3.79","Nesquik (450 g)|3.49","Kellogg's Corn Flakes|2.99","Kellogg's Special K|3.69","Nestlé Chocapic|3.49","Quaker flocons d'avoine|2.49","Nutella (400 g)|3.99","Bonne Maman confiture fraise|2.99","Lune de Miel miel liquide|4.49","Béghin Say sucre en poudre (1 kg)|1.49","Francine farine de blé (1 kg)|1.19","Alsa levure chimique (x8)|1.49","Vahiné sucre vanillé|1.69","Lu Petit Beurre|1.69","Lu Prince chocolat|2.19","Lu Paille d'Or|2.29","BN chocolat|2.29","St Michel galettes|2.49","Bonne Maman madeleines|2.99","Pitch brioches chocolat (x8)|2.89","Côte d'Or chocolat noir (100 g)|1.99","Milka chocolat au lait (100 g)|1.59","Lindt Excellence 70 % (100 g)|2.69","Nestlé Dessert chocolat (200 g)|2.49","Kinder Bueno (x3)|2.79","Haribo Tagada|1.99","Materne Pom'Potes (x4)|2.49","Andros compote pomme (x4)|2.39"]],
+ sg:["Surgelés","#2b8fb3",["McCain frites (1 kg)|3.29","McCain Country Potatoes|3.49","Ristorante pizza mozzarella|3.29","Buitoni Fraîch'Up 4 fromages|3.99","Findus panés de colin (x8)|4.49","Findus poêlée campagnarde|3.29","Bonduelle haricots verts (1 kg)|2.99","*Épinards hachés (1 kg)|2.49","*Petits pois (1 kg)|2.29","Picard nuggets de poulet|4.99","Carte d'Or vanille (1 L)|3.99","Magnum Classic (x4)|4.29","Extrême cônes vanille (x4)|3.99","Häagen-Dazs Cookies & Cream|5.49"]],
+ bs:["Boissons","#1f6b47",["Cristaline eau (6x1,5 L)|1.89","Evian (6x1,5 L)|4.49","Volvic (6x1,5 L)|3.99","Badoit (6x1 L)|4.99","Perrier (4x1 L)|3.99","Coca-Cola (1,5 L)|2.19","Coca-Cola Zéro (1,5 L)|2.19","Orangina (1,5 L)|2.49","Schweppes Agrumes (1,5 L)|2.29","Lipton Ice Tea pêche (1,5 L)|2.09","Oasis Tropical (2 L)|2.59","Tropicana pur jus d'orange (1 L)|2.99","Joker jus de pomme (1 L)|1.79","Teisseire sirop de grenadine (75 cl)|2.99","Kronenbourg (10x25 cl)|6.49","1664 blonde (6x25 cl)|5.49","*Vin rouge AOP Minervois (75 cl)|4.99","*Vin rosé AOP Corbières (75 cl)|4.79"]],
+ hy:["Hygiène et beauté","#c25b84",["Colgate Total dentifrice (75 ml)|2.99","Signal Blancheur dentifrice (75 ml)|2.29","Oral-B brosses à dents (x2)|3.49","Le Petit Marseillais gel douche (250 ml)|2.79","Dove gel douche (250 ml)|3.19","Elsève shampooing Multivitamines (290 ml)|3.29","Head & Shoulders shampooing (285 ml)|4.49","Narta déodorant|2.99","Nivea crème (150 ml)|3.99","Gillette Blue II rasoirs (x10)|4.99","Lotus papier toilette (x12)|5.99","Kleenex mouchoirs (boîte)|2.29","Demak'Up cotons (x70)|1.99","Tampax Compak (x22)|4.49"]],
+ en:["Entretien","#5f6d64",["Paic citron liquide vaisselle|1.99","Finish tablettes lave-vaisselle (x30)|7.99","Ariel lessive liquide (25 lavages)|8.99","Le Chat lessive (25 lavages)|7.99","Soupline adoucissant (56 lavages)|3.99","Sopalin essuie-tout (x2)|3.29","Spontex éponges (x3)|2.29","Mr Propre multi-usages (1 L)|2.49","Saint Marc nettoyant sol|2.99","Harpic gel WC|2.79","La Croix eau de Javel (1 L)|1.69","Cif crème à récurer|2.39","Handy Bag sacs poubelle 30 L (x40)|2.99","Albal papier aluminium (20 m)|2.99","Duracell piles AA (x4)|5.49"]],
+ bb:["Bébé","#e07a3f",["Pampers Baby-Dry taille 4|15.99","Pampers lingettes (x52)|2.69","Blédina petits pots légumes (x2)|2.49","Blédina Blédine vanille (400 g)|3.99","Mixa Bébé gel lavant|3.49"]],
+ an:["Animaux","#6d7f3a",["Whiskas pâtée chat (12x85 g)|5.99","Felix pâtée chat (12x85 g)|5.49","Friskies croquettes chat (2 kg)|7.49","Pedigree pâtée chien (4x400 g)|5.49","Pedigree Dentastix (x7)|3.29","*Litière minérale (10 L)|3.99"]],
+ au:["Autres","#7a8a80",[]]
+};
+const CATS={},GENERIC=new Set();for(const k in RAW){CATS[k]={n:RAW[k][0],c:RAW[k][1],items:RAW[k][2].map(s=>{let[a,b]=s.split("|");if(a[0]==="*"){a=a.slice(1);GENERIC.add(a)}return[a,+b]})}}
+
+/* ---------- Magasins autour d'Azille (11700), horaires relevés en ligne ---------- */
+const HOME={lat:43.27584,lng:2.66127,label:"Azille (11700)",mode:"defaut"};
+const wk=(mf,sun,fri)=>[sun,mf,mf,mf,mf,fri||mf,fri||mf]; // index 0 = dimanche
+const T=s=>{const[h,m]=s.split(":");return h*60+ +m};
+const H=(o,c)=>[[T(o),T(c)]];
+const STORES=[
+ {id:"im-redorte",name:"Intermarché Super",town:"La Redorte",addr:"4 av. du Minervois, 11700 La Redorte",lat:43.25166,lng:2.65123,tel:"04 68 91 63 26",fmt:"Supermarché",h:wk(H("8:00","19:30"),H("9:00","12:30"))},
+ {id:"utile-homps",name:"Utile",town:"Homps",addr:"13 RD 610, 11200 Homps",lat:43.26570,lng:2.71776,tel:"04 68 91 26 47",fmt:"Proximité",h:wk(H("7:00","20:00"),H("7:30","13:00"))},
+ {id:"cm-peyriac",name:"Carrefour Market",town:"Peyriac-Minervois",addr:"ZAC du Haut Minervois, 11160 Peyriac-Minervois",lat:43.28544,lng:2.57204,tel:"04 68 10 84 60",fmt:"Supermarché",h:wk(H("8:30","19:30"),H("9:00","12:45"))},
+ {id:"im-capendu",name:"Intermarché Contact",town:"Capendu",addr:"Lieu-dit Cap del Dié, 11700 Capendu",lat:43.18819,lng:2.56469,tel:"04 68 76 60 60",fmt:"Proximité",h:wk(H("8:30","19:30"),H("9:00","12:30"))},
+ {id:"im-lezignan",name:"Intermarché Super",town:"Lézignan-Corbières",addr:"Rue de l'Estagnol, 11200 Lézignan-Corbières",lat:43.18720,lng:2.75309,tel:"04 68 27 20 33",fmt:"Supermarché",h:wk(H("8:30","20:00"),H("8:30","12:30"))},
+ {id:"cm-lezignan",name:"Carrefour Market",town:"Lézignan-Corbières",addr:"Av. des Corbières, 11200 Lézignan-Corbières",lat:43.18945,lng:2.75217,tel:"04 68 45 53 60",fmt:"Supermarché",h:wk(H("8:30","20:00"),H("9:00","12:30"))},
+ {id:"cc-lezignan",name:"Carrefour Contact",town:"Lézignan-Corbières",addr:"Av. Maréchal Gallieni, 11200 Lézignan-Corbières",lat:43.20375,lng:2.76524,tel:"04 68 46 00 00",fmt:"Proximité",h:wk(H("7:00","20:00"),H("8:00","20:00"))},
+ {id:"lidl-lezignan",name:"Lidl",town:"Lézignan-Corbières",addr:"12 rue des Grillons, 11200 Lézignan-Corbières",lat:43.20060,lng:2.75381,tel:"",fmt:"Discount",h:wk(H("8:30","20:00"),H("8:30","12:30"))},
+ {id:"aldi-lezignan",name:"Aldi",town:"Lézignan-Corbières",addr:"Av. Frédéric Mistral, 11200 Lézignan-Corbières",lat:43.20158,lng:2.77628,tel:"09 77 40 40 44",fmt:"Discount",h:wk(H("8:30","20:00"),H("8:30","12:30"))},
+ {id:"netto-lezignan",name:"Netto",town:"Lézignan-Corbières",addr:"Rue Alfred Nobel, 11200 Lézignan-Corbières",lat:43.18854,lng:2.75091,tel:"04 68 42 59 50",fmt:"Discount",h:wk(H("8:30","19:15"),H("9:00","12:30"),H("8:30","19:30"))}
+];
+/* Communes du secteur (secours quand la recherche en ligne n'est pas disponible) */
+const TOWNS=[["Azille","11700",43.2758,2.6613],["La Redorte","11700",43.2489,2.6556],["Pépieux","11700",43.2958,2.6806],["Puichéric","11700",43.2236,2.6239],["Capendu","11700",43.1858,2.5578],["Homps","11200",43.2681,2.7186],["Lézignan-Corbières","11200",43.2003,2.7578],["Olonzac","34210",43.2822,2.7339],["Peyriac-Minervois","11160",43.2900,2.5650],["Rieux-Minervois","11160",43.2814,2.5878],["Trèbes","11800",43.2108,2.4422],["Carcassonne","11000",43.2130,2.3491],["Narbonne","11100",43.1844,3.0039]];
+const dist=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lng-a.lng);const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+const km=s=>s&&s.lat!=null?dist(S.loc,s):null;
+const kmTxt=s=>{const k=km(s);return k==null?"":`${k<10?k.toFixed(1).replace(".",","):Math.round(k)} km`};
+
+/* Horaires au format OpenStreetMap (« Mo-Sa 08:30-19:30; Su 09:00-12:30 ») */
+function parseOH(str){
+  if(!str)return null;str=str.trim();
+  if(str==="24/7")return Array.from({length:7},()=>[[0,1440]]);
+  const ORD=["Mo","Tu","We","Th","Fr","Sa","Su"],IDX={Su:0,Mo:1,Tu:2,We:3,Th:4,Fr:5,Sa:6};
+  const h=[[],[],[],[],[],[],[]];
+  for(let rule of str.split(";")){
+    rule=rule.trim();if(!rule||/^PH\b/.test(rule))continue;
+    let days,times;
+    if(/^\d/.test(rule)){days=[0,1,2,3,4,5,6];times=rule}
+    else{
+      const m=rule.match(/^([A-Za-z,\- ]+?)\s+(\d.*|off|closed)$/);if(!m)return null;
+      days=[];
+      for(const part of m[1].replace(/\s/g,"").split(",")){
+        if(part==="PH"||part==="")continue;
+        const[a,b]=part.split("-");const ia=ORD.indexOf(a),ib=b?ORD.indexOf(b):ia;if(ia<0||ib<0)return null;
+        for(let i=ia;;i=(i+1)%7){days.push(IDX[ORD[i]]);if(i===ib)break}
+      }
+      times=m[2];
+    }
+    let slots=[];
+    if(!/^(off|closed)$/.test(times)){
+      for(const t of times.split(",")){const x=t.trim().match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);if(!x)return null;slots.push([+x[1]*60+ +x[2],+x[3]*60+ +x[4]])}
+    }
+    days.forEach(d=>h[d]=slots);
+  }
+  return h;
+}
+const DISCOUNT=/lidl|aldi|netto|leader price|action|noz/i;
+function fromOSM(el){
+  const t=el.tags||{},lat=el.lat??el.center?.lat,lng=el.lon??el.center?.lon;
+  const town=t["addr:city"]||"";
+  const street=[t["addr:housenumber"],t["addr:street"]].filter(Boolean).join(" ");
+  return{id:`osm-${el.type}-${el.id}`,name:t.name||t.brand,town,addr:[street,[t["addr:postcode"],town].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+    lat,lng,tel:t.phone||t["contact:phone"]||"",fmt:DISCOUNT.test(t.brand||t.name||"")?"Discount":t.shop==="supermarket"?"Supermarché":"Proximité",
+    h:parseOH(t.opening_hours),hraw:t.opening_hours||""};
+}
+const fmtT=m=>`${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}`;
+function status(s){
+  if(!s.h)return null;
+  const d=new Date(),day=d.getDay(),now=d.getHours()*60+d.getMinutes();
+  const today=s.h[day]||[];
+  for(const[o,c]of today){if(now>=o&&now<c)return{open:true,txt:`Ouvert · ferme à ${fmtT(c)}`}}
+  const later=today.find(([o])=>o>now);
+  if(later)return{open:false,txt:`Fermé · ouvre à ${fmtT(later[0])}`};
+  for(let i=1;i<=7;i++){const dd=(day+i)%7,sl=s.h[dd];if(sl&&sl.length)return{open:false,txt:`Fermé · ouvre ${i===1?"demain":["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][dd]} à ${fmtT(sl[0][0])}`}}
+  return{open:false,txt:"Fermé"};
+}
+const todayHours=s=>{if(!s.h)return s.hraw?`Horaires : ${esc(s.hraw)}`:"";const sl=s.h[new Date().getDay()]||[];return "Aujourd'hui : "+(sl.length?sl.map(([o,c])=>`${fmtT(o)} – ${fmtT(c)}`).join(", "):"fermé")};
+const maps=s=>`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
+
+/* ---------- État ---------- */
+const KEY="coursepro-v2";
+const uid=()=>Math.random().toString(36).slice(2,10);
+const catOf=name=>{for(const k in CATS)if(CATS[k].items.some(i=>i[0]===name))return k;return"au"};
+const basePrice=name=>{for(const k in CATS){const f=CATS[k].items.find(i=>i[0]===name);if(f)return f[1]}return 0};
+let S={tab:"home",storeId:null,storeSnap:null,customStores:[],loc:{...HOME},liveStores:null,locBusy:false,locMsg:"",budget:80,cat:"all",q:"",storeFilter:"all",
+  cart:[],favs:["Baguette tradition","Lactel lait demi-écrémé (1 L)","Carte Noire café moulu (250 g)","Bananes (1 kg)","Président beurre doux (250 g)"],
+  prices:{},counts:{},history:[],confirmClear:false,example:true};
+S.cart=[["Bananes (1 kg)",1],["Lactel lait demi-écrémé (1 L)",2],["Baguette tradition",2],["Panzani spaghetti (500 g)",2],["Carte Noire café moulu (250 g)",1],["Loué œufs plein air (x12)",1],["Cristaline eau (6x1,5 L)",1]].map(([n,q])=>({id:uid(),name:n,cat:catOf(n),qty:q,done:false}));
+try{
+  const d=JSON.parse(localStorage.getItem(KEY));
+  if(d)S={...S,...d,tab:"home",q:"",confirmClear:false,locBusy:false,locMsg:""};
+  else{const o=JSON.parse(localStorage.getItem("coursepro-v1"));if(o){S.cart=(o.cart||[]).map(i=>({id:i.id||uid(),name:i.name,cat:catOf(i.name),qty:i.qty,done:!!i.done}));S.favs=o.favs||S.favs;S.history=o.history||[];S.budget=o.budget||80;S.counts=o.counts||{};S.example=false}}
+}catch(e){}
+const save=()=>{try{const{tab,q,confirmClear,locBusy,locMsg,...d}=S;localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}};
+
+const nearby=()=>S.liveStores||STORES;
+const allStores=()=>[...nearby(),...STORES,...S.customStores];
+const store=()=>{if(!S.storeId)return null;const f=allStores().find(s=>s.id===S.storeId);return f||S.storeSnap||null};
+function pickStore(id){const s=allStores().find(x=>x.id===id);if(!s)return;S.storeId=id;S.storeSnap=s;save();render();toast(`Magasin choisi : ${storeLabel(s)}`)}
+
+/* ---------- Localisation ---------- */
+async function getJSON(url,opts){const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),20000);try{const r=await fetch(url,{...opts,signal:ctl.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(t)}}
+async function loadStoresAround(){
+  const{lat,lng}=S.loc;
+  const q=`[out:json][timeout:25];nwr["shop"~"^(supermarket|convenience)$"]["name"](around:20000,${lat},${lng});out center tags;`;
+  try{
+    const j=await getJSON("https://overpass-api.de/api/interpreter",{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+    const list=(j.elements||[]).map(fromOSM).filter(s=>s.name&&s.lat!=null).sort((a,b)=>km(a)-km(b)).slice(0,40);
+    S.liveStores=list;S.locMsg=list.length?`${list.length} magasins trouvés dans un rayon de 20 km.`:"Aucun magasin trouvé dans un rayon de 20 km. Ajoutez le vôtre en bas de la page.";
+  }catch(e){
+    S.liveStores=null;
+    const near=STORES.some(s=>km(s)<30);
+    S.locMsg=near?"Recherche en ligne indisponible ici : voici les magasins du secteur enregistrés dans l'appli.":"Recherche en ligne indisponible ici, et les magasins enregistrés sont loin de cette position. Ajoutez votre magasin en bas de la page.";
+  }
+}
+async function setLoc(loc){S.loc=loc;S.locBusy=true;render();await loadStoresAround();S.locBusy=false;save();render()}
+function locateGPS(){
+  if(!navigator.geolocation){S.locMsg="Ce navigateur ne donne pas accès au GPS. Choisissez votre ville ci-dessous.";render();return}
+  S.locBusy=true;S.locMsg="Recherche de votre position…";render();
+  let done=false;
+  const fail=msg=>{if(done)return;done=true;S.locBusy=false;S.locMsg=msg;render()};
+  const guard=setTimeout(()=>fail("La position n'a pas pu être obtenue. Choisissez votre ville ci-dessous."),15000);
+  try{
+    navigator.geolocation.getCurrentPosition(async p=>{
+      if(done)return;done=true;clearTimeout(guard);
+      const lat=p.coords.latitude,lng=p.coords.longitude;let label="Ma position";
+      try{const r=await getJSON(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=14&accept-language=fr&lat=${lat}&lon=${lng}`);const a=r.address||{};label=[a.village||a.town||a.city||a.municipality,a.postcode&&`(${a.postcode})`].filter(Boolean).join(" ")||label}
+      catch(e){const t=TOWNS.map(t=>({t,k:dist({lat,lng},{lat:t[2],lng:t[3]})})).sort((a,b)=>a.k-b.k)[0];if(t.k<4)label=`${t.t[0]} (${t.t[1]})`}
+      setLoc({lat,lng,label,mode:"gps"});
+    },err=>{clearTimeout(guard);fail(err.code===1?"La localisation est refusée. Autorisez-la pour ce site dans les réglages de votre téléphone (Réglages > Confidentialité > Service de localisation > Safari), ou choisissez votre ville ci-dessous.":"La position n'a pas pu être obtenue. Choisissez votre ville ci-dessous.")},{enableHighAccuracy:true,timeout:12000,maximumAge:300000});
+  }catch(e){clearTimeout(guard);fail("Le GPS n'est pas disponible ici. Choisissez votre ville ci-dessous.")}
+}
+async function searchCity(q){
+  q=q.trim();if(!q)return;
+  S.locBusy=true;S.locMsg=`Recherche de « ${q} »…`;render();
+  try{
+    const r=await getJSON(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr&addressdetails=1&accept-language=fr&q=${encodeURIComponent(q)}`);
+    if(r[0]){const a=r[0].address||{};const name=a.village||a.town||a.city||a.municipality||r[0].display_name.split(",")[0];await setLoc({lat:+r[0].lat,lng:+r[0].lon,label:`${name}${a.postcode?` (${a.postcode})`:""}`,mode:"ville"});return}
+    S.locBusy=false;S.locMsg=`Aucune commune trouvée pour « ${q} ». Vérifiez l'orthographe ou le code postal.`;render();return;
+  }catch(e){}
+  const t=TOWNS.find(t=>norm(t[0])===norm(q))||TOWNS.find(t=>t[1]===q)||TOWNS.find(t=>norm(t[0]).startsWith(norm(q)));
+  if(t){await setLoc({lat:t[2],lng:t[3],label:`${t[0]} (${t[1]})`,mode:"ville"});return}
+  S.locBusy=false;S.locMsg=`« ${q} » n'est pas dans la liste du secteur, et la recherche en ligne est indisponible ici. Choisissez une commune proposée.`;render();
+}
+const storeLabel=s=>s?`${s.name} ${s.town}`.trim():"Aucun magasin choisi";
+const price=name=>S.prices[name]??basePrice(name);
+const line=i=>i.qty*price(i.name);
+const total=()=>S.cart.reduce((a,i)=>a+line(i),0);
+const doneTotal=()=>S.cart.filter(i=>i.done).reduce((a,i)=>a+line(i),0);
+const inCart=name=>S.cart.find(i=>i.name===name);
+const unpriced=()=>S.cart.filter(i=>!price(i.name)).length;
+
+const eur=n=>n.toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+
+const ICON={
+ home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg>',
+ search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/></svg>',
+ starO:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+ cart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.5h10.6L20.5 7H7"/><circle cx="9.5" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg>',
+ tick:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
+};
+const TABS=[["home","Accueil","home"],["search","Rechercher","search"],["favs","Mes produits","starO"],["stores","Magasins","pin"],["cart","Panier","cart"]];
+
+
+/* ---------- Images : illustration du rayon, remplacée par la photo réelle quand elle est disponible ---------- */
+const CI={
+ fl:'<path d="M12 7c-3-2-7 0-7 4.5S8 21 10.5 21c.8 0 1-.5 1.5-.5s.7.5 1.5.5C16 21 19 16 19 11.5S15 5 12 7z"/><path d="M12 7c0-2 1-3.5 3-4"/>',
+ vp:'<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3z"/><circle cx="8" cy="11" r="1" fill="currentColor"/>',
+ ch:'<path d="M5 15c-1.5-1.5-1-4 1-5l6-4c2.5-1.5 6-.5 7 2s-.5 5-3 6l-6 3c-2 1-3.5.5-5-2z"/><path d="M9 11l1 1M13 9l1 1"/>',
+ cr:'<path d="M8 3h8v3l2 3v12H6V9l2-3z"/><path d="M6 9h12M10 14h4"/>',
+ bo:'<path d="M4 17c-1-1 0-3 2-5l6-6c2-2 4-3 5-2s1 3-1 5l-6 6c-2 2-5 3-6 2z"/><path d="M9 10l2 2M12 7l2 2M6 13l2 2"/>',
+ es:'<ellipse cx="12" cy="6" rx="6" ry="2"/><path d="M6 6v12c0 1.1 2.7 2 6 2s6-.9 6-2V6M6 11h12"/>',
+ ap:'<path d="M3 11h18c0 5-4 8-9 8s-9-3-9-8z"/><path d="M7 11l2-5 3 5M13 11l3-6 2 6"/>',
+ su:'<path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2M9 3v3M12 3v3"/>',
+ sg:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M10 4.5l2 2 2-2M10 19.5l2-2 2 2"/>',
+ bs:'<path d="M10 3h4v3l2 3v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9l2-3z"/><path d="M8 13h8"/>',
+ hy:'<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+ en:'<path d="M8 9h7v12H8zM9 9V6h5v3M14 6h3l1 2M19 4l1.5-1M19 7h2"/>',
+ bb:'<path d="M9 8h6v12a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM10 8V6l2-3 2 3v2M9 13h6"/>',
+ an:'<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3-5 5 0 1.5 1.5 2 2.5 2s1.5-.5 2.5-.5 1.5.5 2.5.5 2.5-.5 2.5-2c0-2-2-5-5-5z"/>',
+ au:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>'
+};
+const IMGKEY="coursepro-img";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
+let imgOff=false;const imgQueue=[];let imgBusy=false;
+const catSvg=cat=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CI[cat]||CI.au}</svg>`;
+function thumb(name,cat,small){
+  const c=(CATS[cat]||CATS.au).c,url=IMG[name];
+  const want=!GENERIC.has(name)&&cat!=="au"&&url===undefined&&!imgOff;
+  return `<div class="thumb${small?" sm":""}" style="--c:${c}" ${want?`data-img="${esc(name)}"`:""}>${catSvg(cat)}${url?`<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
+}
+async function pumpImages(){
+  if(imgBusy||imgOff)return;imgBusy=true;
+  let fails=0;
+  while(imgQueue.length&&!imgOff){
+    const name=imgQueue.shift();if(IMG[name]!==undefined)continue;
+    try{
+      const q=name.replace(/\([^)]*\)/g,"").trim();
+      const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=1&fields=image_front_small_url,image_front_url&langs=fr`);
+      const h=(r.hits||[])[0]||{};IMG[name]=h.image_front_small_url||h.image_front_url||"";fails=0;
+      try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
+      document.querySelectorAll(`.thumb[data-img="${CSS.escape(name)}"]`).forEach(el=>{el.removeAttribute("data-img");if(IMG[name]){const im=new Image();im.alt="";im.onerror=()=>im.remove();im.src=IMG[name];el.appendChild(im)}});
+    }catch(e){if(++fails>=3)imgOff=true}
+    await new Promise(r=>setTimeout(r,700));
+  }
+  imgBusy=false;
+}
+const io="IntersectionObserver" in window?new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);const n=e.target.dataset.img;if(n&&!imgQueue.includes(n))imgQueue.push(n)}});pumpImages()},{rootMargin:"200px"}):null;
+function watchImages(){if(!io||imgOff)return;document.querySelectorAll(".thumb[data-img]").forEach(el=>io.observe(el))}
+
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
+
+function addItem(name,cat){
+  if(S.example){S.cart=[];S.example=false}
+  const f=inCart(name);
+  if(f){f.qty++;f.done=false}else S.cart.push({id:uid(),name,cat:cat||catOf(name),qty:1,done:false});
+  save();render();toast(`${name} ajouté au panier`);
+}
+function productRow(name,cat){
+  const c=CATS[cat]||CATS.au,f=inCart(name),fav=S.favs.includes(name),p=price(name);
+  return `<div class="row">${thumb(name,cat)}
+  <div class="txt"><div class="n">${esc(name)}</div><div class="s num">${p?(S.prices[name]!=null?eur(p)+" (ton prix)":"≈ "+eur(p)):c.n}${f?` · ${f.qty} au panier`:""}</div></div>
+  <button class="star ${fav?"on":""}" data-fav="${esc(name)}" aria-label="${fav?"Retirer des":"Ajouter aux"} favoris">${fav?ICON.star:ICON.starO}</button>
+  <button class="icon-btn ${f?"in":""}" data-add="${esc(name)}" data-cat="${cat}" aria-label="Ajouter ${esc(name)}">+</button></div>`;
+}
+const pillStatus=s=>{const st=status(s);return st?`<span class="pill ${st.open?"open":"closed"}">${st.txt}</span>`:""};
+
+/* ---------- Vues ---------- */
+function vHome(){
+  const t=total(),pct=S.budget?Math.min(100,t/S.budget*100):0,left=S.budget-t,s=store();
+  const todo=S.cart.filter(i=>!i.done).length;
+  const storeBlock=s?`<div class="storecard"><div class="top"><div class="txt"><div class="eyebrow">Mon magasin</div><h2>${esc(storeLabel(s))}</h2><div class="note">${esc(s.addr||"")}${km(s)!=null?` · ${kmTxt(s)} de ${esc(S.loc.label)}`:""}</div></div></div>
+    <div class="shop meta" style="padding:0;border:0">${pillStatus(s)}<span class="note">${todayHours(s)}</span></div>
+    <div class="shop acts" style="padding:0;border:0">${s.lat?`<a class="btn small ghost" href="${maps(s)}" target="_blank" rel="noopener">Itinéraire</a>`:""}<button class="btn small ghost" data-go="stores">Changer de magasin</button></div></div>`
+   :`<div class="storecard"><div class="eyebrow">Où faites-vous vos courses ?</div><h2>Choisissez votre magasin</h2><div class="note">Localisez-vous pour voir les magasins les plus proches, avec horaires et itinéraire.</div><button class="btn" data-go="stores">Choisir un magasin</button></div>`;
+  return `<div class="view">
+  <div><div class="eyebrow">Course Pro 1.0</div><h1>Bonjour Denis</h1></div>
+  ${storeBlock}
+  <div class="hero">
+    <div class="hero-row"><div><div class="eyebrow">Panier estimé</div><div class="big num">${eur(t)}</div></div>
+    <div style="text-align:right"><div class="eyebrow">Budget</div><div class="num" style="font-weight:700;font-size:1.15rem">${eur(S.budget)}</div></div></div>
+    <div class="bar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
+    <div class="num" style="font-weight:600">${left>=0?`Il reste ${eur(left)} sur le budget`:`Budget dépassé de ${eur(-left)}`}</div>
+  </div>
+  <div class="grid2">
+    <div class="stat"><span class="eyebrow">À prendre</span><b class="num">${todo}</b></div>
+    <div class="stat"><span class="eyebrow">Dans le chariot</span><b class="num">${S.cart.length-todo}</b></div>
+  </div>
+  <div class="field"><label for="budget">Budget des courses (€)</label><input id="budget" type="number" inputmode="decimal" min="0" step="5" value="${S.budget}"></div>
+  <div class="grid2"><button class="btn" data-go="search">Ajouter des produits</button><button class="btn ghost" data-go="cart">Voir le panier</button></div>
+  ${vHistory()}
+  </div>`;
+}
+function vHistory(){
+  if(!S.history.length)return `<div><div class="eyebrow">Mes dernières courses</div><p class="note">Quand vous touchez « Terminer les courses » dans le panier, le magasin, la date et le montant s'enregistrent ici.</p></div>`;
+  const avg=S.history.reduce((a,h)=>a+h.total,0)/S.history.length;
+  return `<div class="head"><div class="eyebrow">Mes dernières courses</div><span class="note num">Moyenne ${eur(avg)}</span></div>
+  <div class="list">${S.history.slice(-6).reverse().map(h=>`<div class="row"><div class="dot" style="background:var(--accent);color:var(--on-accent)">${new Date(h.date).getDate()}</div><div class="txt"><div class="n">${esc(h.store)}</div><div class="s">${new Date(h.date).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})} · ${h.count} article${h.count>1?"s":""}</div></div><div class="num" style="font-weight:700">${eur(h.total)}</div></div>`).join("")}</div>`;
+}
+
+function vSearch(){
+  const q=norm(S.q.trim());
+  let rows="";
+  if(q){
+    const res=[];for(const k in CATS)CATS[k].items.forEach(i=>{if(norm(i[0]).includes(q)||norm(CATS[k].n).includes(q))res.push([i[0],k])});
+    S.favs.filter(n=>catOf(n)==="au"&&norm(n).includes(q)).forEach(n=>res.push([n,"au"]));
+    rows=res.slice(0,60).map(r=>productRow(r[0],r[1])).join("");
+    if(!res.some(r=>norm(r[0])===q))rows+=`<div class="row">${thumb("","au")}<div class="txt"><div class="n">Ajouter « ${esc(S.q.trim())} »</div><div class="s">Produit absent du catalogue</div></div><button class="icon-btn" data-add="${esc(S.q.trim())}" data-cat="au" aria-label="Ajouter ce produit">+</button></div>`;
+  }else{
+    const keys=S.cat==="all"?Object.keys(CATS).filter(k=>CATS[k].items.length):[S.cat];
+    rows=keys.map(k=>CATS[k].items.map(i=>productRow(i[0],k)).join("")).join("");
+  }
+  const n=Object.values(CATS).reduce((a,c)=>a+c.items.length,0);
+  const chips=[["all","Tout"],...Object.keys(CATS).filter(k=>CATS[k].items.length).map(k=>[k,CATS[k].n])]
+    .map(([k,n])=>`<button class="chip" data-cat-f="${k}" aria-pressed="${S.cat===k}">${n}</button>`).join("");
+  return `<div class="view"><div class="head"><h1>Rechercher</h1><span class="note num">${n} produits</span></div>
+  <label class="search">${ICON.search.replace("<svg",'<svg width="20" height="20"')}<input id="q" placeholder="Produit, marque ou rayon" value="${esc(S.q)}" autocomplete="off" aria-label="Rechercher un produit"></label>
+  ${q?"":`<div class="chips">${chips}</div>`}
+  <div class="list">${rows}</div>
+  <p class="note">Prix indicatifs relevés en France. Ils varient selon le magasin : corrigez-les dans le panier avec le prix vu en rayon, l'appli s'en souviendra.</p></div>`;
+}
+
+function vFavs(){
+  const freq=Object.entries(S.counts).sort((a,b)=>b[1]-a[1]).filter(([n])=>!S.favs.includes(n)).slice(0,8);
+  return `<div class="view"><h1>Mes produits</h1>
+  <div class="eyebrow">Favoris</div>
+  ${S.favs.length?`<div class="list">${S.favs.map(n=>productRow(n,catOf(n))).join("")}</div>
+  <button class="btn ghost" data-allfavs>Ajouter tous les favoris au panier</button>`:`<div class="empty">Touchez l'étoile d'un produit dans Rechercher pour le garder ici.</div>`}
+  <div class="eyebrow">Souvent achetés</div>
+  ${freq.length?`<div class="list">${freq.map(([n,c])=>productRow(n,catOf(n)).replace('<div class="s num">',`<div class="s num">Acheté ${c} fois · `)).join("")}</div>`:`<p class="note">Les produits que vous achetez le plus apparaîtront ici après vos premières courses terminées.</p>`}
+  </div>`;
+}
+
+function vStores(){
+  let list=[...nearby()].sort((a,b)=>(km(a)??1e9)-(km(b)??1e9));
+  if(S.storeFilter==="open")list=list.filter(s=>status(s)?.open);
+  if(S.storeFilter==="disc")list=list.filter(s=>s.fmt==="Discount");
+  const f=[["all","Tous"],["open","Ouverts maintenant"],["disc","Discount"]].map(([k,l])=>`<button class="chip" data-sf="${k}" aria-pressed="${S.storeFilter===k}">${l}</button>`).join("");
+  const card=s=>`<div class="shop ${s.id===S.storeId?"sel":""}">
+    <div class="l1"><div class="txt"><div class="n">${esc(s.name)} ${s.town?`<span style="font-weight:500">· ${esc(s.town)}</span>`:""}</div><div class="s">${esc(s.addr||"Magasin ajouté par vous")}</div></div>${km(s)!=null?`<div class="km num">${kmTxt(s)}</div>`:""}</div>
+    <div class="meta">${pillStatus(s)}${s.fmt?`<span class="pill fmt">${s.fmt}</span>`:""}${s.tel?`<span class="note num">${esc(s.tel)}</span>`:""}</div>
+    ${todayHours(s)?`<div class="note">${todayHours(s)}</div>`:""}
+    <div class="acts">${s.id===S.storeId?`<span class="btn small" aria-disabled="true">✓ Mon magasin</span>`:`<button class="btn small" data-pick="${esc(s.id)}">Choisir ce magasin</button>`}${s.lat?`<a class="btn small ghost" href="${maps(s)}" target="_blank" rel="noopener">Itinéraire</a>`:""}${s.custom?`<button class="btn small warn" data-delstore="${s.id}">Retirer</button>`:""}</div>
+  </div>`;
+  const towns=TOWNS.map(t=>`<button class="chip" data-town="${t[0]}">${t[0]}</button>`).join("");
+  return `<div class="view"><h1>Magasins</h1>
+  <div class="storecard" aria-live="polite">
+    <div class="top"><span style="color:var(--accent);flex:none;width:26px">${ICON.pin}</span><div class="txt"><div class="eyebrow">Ma position</div><div class="n">${esc(S.loc.label)}</div><div class="s">${S.loc.mode==="gps"?"Localisé par GPS":S.loc.mode==="ville"?"Choisie à la main":"Position par défaut"}</div></div></div>
+    <button class="btn" data-gps ${S.locBusy?"disabled":""}>${S.locBusy?"Recherche en cours…":"Me localiser"}</button>
+    <form class="add-row" id="cityform"><input class="inp" id="city" placeholder="Ville ou code postal" autocomplete="off" aria-label="Ville ou code postal"><button class="btn ghost" ${S.locBusy?"disabled":""}>OK</button></form>
+    <div class="chips">${towns}</div>
+    ${S.locMsg?`<div class="note">${esc(S.locMsg)}</div>`:""}
+  </div>
+  <p class="note">Du plus proche au plus loin de ${esc(S.loc.label)}, à vol d'oiseau.</p>
+  <div class="chips">${f}</div>
+  <div class="list">${list.length?list.map(card).join(""):`<div class="empty">Aucun magasin ne correspond à ce filtre pour le moment.</div>`}</div>
+  ${S.customStores.length?`<div class="eyebrow">Mes autres magasins</div><div class="list">${S.customStores.map(card).join("")}</div>`:""}
+  <form class="storecard" id="addstore"><div class="eyebrow">Ajouter un magasin</div>
+    <div class="add-row"><input class="inp" id="sname" placeholder="Enseigne (ex. : Leclerc)" aria-label="Enseigne" required><input class="inp" id="stown" placeholder="Ville" aria-label="Ville"></div>
+    <button class="btn ghost">Ajouter et choisir</button></form>
+  <p class="note">Magasins et horaires issus d'OpenStreetMap ou relevés en ligne : ils peuvent changer les jours fériés. Vérifiez auprès du magasin en cas de doute.</p>
+  </div>`;
+}
+
+function vCart(){
+  const s=store();
+  const storeLine=`<div class="note">${s?`Courses chez <b>${esc(storeLabel(s))}</b> · ${status(s)?.txt||""}`:`<button class="btn small ghost" data-go="stores">Choisir un magasin</button>`}</div>`;
+  if(!S.cart.length)return `<div class="view"><h1>Panier</h1>${storeLine}<div class="empty">${ICON.cart}<h2>Votre panier est vide</h2><div>Ajoutez vos produits depuis Rechercher ou Mes produits.</div><button class="btn" data-go="search">Ajouter des produits</button></div>${quickAdd()}</div>`;
+  const groups={};S.cart.forEach(i=>(groups[i.cat]=groups[i.cat]||[]).push(i));
+  const order=Object.keys(CATS).filter(k=>groups[k]);
+  const allDone=S.cart.every(i=>i.done),nDone=S.cart.filter(i=>i.done).length,np=unpriced();
+  return `<div class="view"><div class="head"><h1>Panier</h1><span class="eyebrow num">${nDone}/${S.cart.length} dans le chariot</span></div>
+  ${storeLine}
+  ${S.example?`<p class="note" style="background:var(--mustard-soft);padding:10px 12px;border-radius:12px">Liste d'exemple : elle sera remplacée dès que vous ajouterez votre premier produit.</p>`:""}
+  ${quickAdd()}
+  <p class="note">Rangé par rayon. Touchez un prix pour le remplacer par celui vu en magasin.</p>
+  ${order.map(k=>`<div class="aisle"><div class="eyebrow">${CATS[k].n}</div><div class="list">${groups[k].slice().sort((a,b)=>a.done-b.done).map(i=>{const p=price(i.name),own=S.prices[i.name]!=null;return`
+    <div class="row ${i.done?"done":""}">
+      <button class="check ${i.done?"on":""}" data-done="${i.id}" aria-label="${i.done?"Retirer du chariot":"Mettre dans le chariot"} : ${esc(i.name)}">${i.done?ICON.tick:""}</button>${thumb(i.name,i.cat,true)}
+      <div class="txt"><div class="n">${esc(i.name)}</div><label class="pin">${own?"":"≈"}<input class="${own?"edited":""}" type="number" inputmode="decimal" min="0" step="0.01" id="p-${i.id}" data-price="${esc(i.name)}" value="${p?p.toFixed(2):""}" placeholder="prix" aria-label="Prix unitaire de ${esc(i.name)}">€${i.qty>1&&p?` · ${eur(line(i))}`:""}</label></div>
+      <div class="qty"><button data-dec="${i.id}" aria-label="Un de moins">−</button><span class="num">${i.qty}</span><button data-inc="${i.id}" aria-label="Un de plus">+</button></div>
+    </div>`}).join("")}</div></div>`).join("")}
+  <div class="totals">
+    <div><span>Déjà dans le chariot</span><span class="num">${eur(doneTotal())}</span></div>
+    <div><span>Reste à prendre</span><span class="num">${eur(total()-doneTotal())}</span></div>
+    <div><span class="t">Total estimé</span><span class="t num">${eur(total())}</span></div>
+    ${total()>S.budget?`<div style="color:var(--danger);font-weight:600"><span>Au-dessus du budget</span><span class="num">+${eur(total()-S.budget)}</span></div>`:""}
+    ${np?`<div class="note"><span>${np} produit${np>1?"s":""} sans prix, non compté${np>1?"s":""}</span></div>`:""}
+  </div>
+  <button class="btn" data-finish ${nDone?"":"disabled"}>${nDone?(allDone?"Terminer les courses":`Terminer avec les ${nDone} article${nDone>1?"s":""} pris`):"Cochez les articles mis dans le chariot"}</button>
+  ${!allDone&&nDone?`<p class="note">Les articles non cochés resteront dans le panier pour la prochaine fois.</p>`:""}
+  ${S.confirmClear?`<div class="confirm"><span style="flex:1;min-width:0">Vider tout le panier ?</span><button class="btn" style="background:var(--danger);color:var(--surface)" data-clear-yes>Vider</button><button class="btn ghost" data-clear-no>Annuler</button></div>`:`<button class="btn warn" data-clear>Vider le panier</button>`}
+  </div>`;
+}
+const quickAdd=()=>`<form class="add-row" id="quick"><input class="inp" id="quickname" placeholder="Ajout rapide (ex. : nutella)" autocomplete="off" aria-label="Ajout rapide"><button class="btn">Ajouter</button></form>`;
+
+function render(){
+  const v={home:vHome,search:vSearch,favs:vFavs,stores:vStores,cart:vCart}[S.tab];
+  document.getElementById("app").innerHTML=v();
+  const left=S.cart.filter(i=>!i.done).length;
+  watchImages();
+  document.getElementById("tabs").innerHTML=TABS.map(([k,l,ic])=>`<button data-tab="${k}" ${S.tab===k?'aria-current="page"':""}>${ICON[ic]}${l}${k==="cart"&&left?`<span class="badge num">${left}</span>`:""}</button>`).join("");
+}
+
+/* ---------- Interactions ---------- */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+  if(d.tab||d.go){S.tab=d.tab||d.go;S.confirmClear=false;render();window.scrollTo(0,0);return}
+  if(d.add){addItem(d.add,d.cat);return}
+  if(d.fav){const i=S.favs.indexOf(d.fav);i<0?S.favs.push(d.fav):S.favs.splice(i,1);save();render();toast(i<0?"Ajouté aux favoris":"Retiré des favoris");return}
+  if(d.catF){S.cat=d.catF;render();return}
+  if(d.sf){S.storeFilter=d.sf;render();return}
+  if(d.pick){pickStore(d.pick);return}
+  if("gps" in d){locateGPS();return}
+  if(d.town){const t=TOWNS.find(t=>t[0]===d.town);setLoc({lat:t[2],lng:t[3],label:`${t[0]} (${t[1]})`,mode:"ville"});return}
+  if(d.delstore){S.customStores=S.customStores.filter(s=>s.id!==d.delstore);if(S.storeId===d.delstore)S.storeId=null;save();render();return}
+  if("allfavs" in d){if(S.example){S.cart=[];S.example=false}let n=0;S.favs.forEach(x=>{if(!inCart(x)){S.cart.push({id:uid(),name:x,cat:catOf(x),qty:1,done:false});n++}});save();render();toast(n?`${n} favori${n>1?"s":""} ajouté${n>1?"s":""}`:"Tous vos favoris sont déjà au panier");return}
+  const it=id=>S.cart.find(i=>i.id===id);
+  if(d.done){const i=it(d.done);i.done=!i.done;S.example=false;save();render();return}
+  if(d.inc){it(d.inc).qty++;S.example=false;save();render();return}
+  if(d.dec){const i=it(d.dec);if(--i.qty<1)S.cart=S.cart.filter(x=>x!==i);save();render();return}
+  if("clear" in d){S.confirmClear=true;render();return}
+  if("clearNo" in d){S.confirmClear=false;render();return}
+  if("clearYes" in d){S.cart=[];S.example=false;S.confirmClear=false;save();render();toast("Panier vidé");return}
+  if("finish" in d){
+    const taken=S.cart.filter(i=>i.done);if(!taken.length)return;
+    taken.forEach(i=>S.counts[i.name]=(S.counts[i.name]||0)+i.qty);
+    S.history.push({date:Date.now(),store:storeLabel(store()),total:taken.reduce((a,i)=>a+line(i),0),count:taken.reduce((a,i)=>a+i.qty,0)});
+    S.history=S.history.slice(-50);
+    S.cart=S.cart.filter(i=>!i.done);S.example=false;save();S.tab="home";render();window.scrollTo(0,0);toast("Courses enregistrées");
+  }
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="q"){S.q=e.target.value;const pos=e.target.selectionStart;render();const q=document.getElementById("q");q.focus();q.setSelectionRange(pos,pos)}
+  if(e.target.id==="budget"){S.budget=Math.max(0,parseFloat(e.target.value)||0);save()}
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="budget")render();
+  if(e.target.dataset.price!=null){
+    const n=e.target.dataset.price,v=parseFloat(String(e.target.value).replace(",","."));
+    if(isNaN(v)||e.target.value===""){delete S.prices[n]}else S.prices[n]=Math.round(v*100)/100;
+    save();render();
+  }
+});
+document.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.target.id==="quick"){
+    const inp=document.getElementById("quickname"),n=inp.value.trim();if(!n)return;
+    const all=Object.values(CATS).flatMap(c=>c.items).map(i=>i[0]);
+    const m=all.find(x=>norm(x).startsWith(norm(n)))||all.find(x=>norm(x).includes(norm(n)));
+    addItem(m||n.charAt(0).toUpperCase()+n.slice(1));
+    setTimeout(()=>document.getElementById("quickname")?.focus());
+  }
+  if(e.target.id==="addstore"){
+    const name=document.getElementById("sname").value.trim(),town=document.getElementById("stown").value.trim();if(!name)return;
+    const s={id:"c-"+uid(),name,town,custom:true};S.customStores.push(s);pickStore(s.id);
+  }
+  if(e.target.id==="cityform")searchCity(document.getElementById("city").value);
+});
+render();
+if(!S.liveStores&&S.loc.mode==="defaut")loadStoresAround().then(render);
+setInterval(()=>{if(S.tab==="stores"||S.tab==="home"){const a=document.activeElement;if(!a||a.tagName!=="INPUT")render()}},60000);
+</script>
+
+</body></html>
