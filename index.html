@@ -345,46 +345,67 @@ const CI={
  an:'<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3-5 5 0 1.5 1.5 2 2.5 2s1.5-.5 2.5-.5 1.5.5 2.5.5 2.5-.5 2.5-2c0-2-2-5-5-5z"/>',
  au:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>'
 };
-const IMGKEY="coursepro-img";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
+const IMGKEY="coursepro-img-v2";let IMG={};try{IMG=JSON.parse(localStorage.getItem(IMGKEY))||{}}catch(e){}
 let imgOff=false;const imgQueue=[];let imgBusy=false;
 const catSvg=cat=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${CI[cat]||CI.au}</svg>`;
 function thumb(name,cat,small){
   const c=(CATS[cat]||CATS.au).c,url=IMG[name];
-  const want=!GENERIC.has(name)&&cat!=="au"&&url===undefined&&!imgOff;
+  const want=cat!=="au"&&url===undefined&&!imgOff;
   return `<div class="thumb${small?" sm":""}" style="--c:${c}" ${want?`data-img="${esc(name)}"`:""}>${catSvg(cat)}${url?`<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">`:""}</div>`;
+}
+function imageQueryName(name){
+  return name.replace(/\\([^)]*\\)/g," ").replace(/\\b(x\\d+|\\d+(?:[,.]\\d+)?\\s?(?:g|kg|ml|cl|l)?)\\b/gi," ").replace(/[–—]/g," ").replace(/\\s+/g," ").trim();
+}
+function imageMatchScore(wanted,candidate){
+  const clean=x=>imageQueryName(String(x||"")).toLocaleLowerCase("fr").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").split(/\\s+/).filter(t=>t.length>1);
+  const a=clean(wanted),b=clean(candidate);
+  if(!a.length||!b.length)return 0;
+  const stop=new Set(["produit","frais","fraiche","frais","nature","original","france","format"]);
+  const aa=a.filter(t=>!stop.has(t)),bb=new Set(b.filter(t=>!stop.has(t)));
+  const overlap=aa.filter(t=>bb.has(t)).length;
+  return overlap/Math.max(1,aa.length);
+}
+function bestProductImage(items,name){
+  let best=null,score=0;
+  for(const p of items||[]){
+    const url=p.image_front_small_url||p.image_front_url||p.image_front_thumb_url||"";
+    const title=p.product_name_fr||p.product_name||p.name||"";
+    if(!url||!title)continue;
+    const sc=imageMatchScore(name,title);
+    if(sc>score){score=sc;best=url}
+  }
+  // Ne pas afficher une photo d'un produit sans rapport : seuil de correspondance strict.
+  return score>=0.45?best:"";
 }
 async function pumpImages(){
   if(imgBusy||imgOff)return;imgBusy=true;
-  let fails=0;
   while(imgQueue.length&&!imgOff){
     const name=imgQueue.shift();if(IMG[name]!==undefined)continue;
     try{
-      const q=name.replace(/\([^)]*\)/g,"").trim();
+      const q=imageQueryName(name);
       let photo="";
-      // Open Food Facts: essayer l'API de recherche récente puis l'API publique classique.
-      try{
-        const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=5&fields=product_name,image_front_small_url,image_front_url&langs=fr`);
-        const hits=r.hits||[];
-        const hit=hits.find(x=>x.image_front_small_url||x.image_front_url)||hits[0]||{};
-        photo=hit.image_front_small_url||hit.image_front_url||"";
-      }catch(e){}
-      if(!photo){
+      const queries=[q,name.replace(/\\([^)]*\\)/g," ").trim()].filter((x,i,a)=>x&&a.indexOf(x)===i);
+      for(const query of queries){
         try{
-          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,image_front_small_url,image_front_url`);
-          const products=r.products||[];
-          const hit=products.find(x=>x.image_front_small_url||x.image_front_url)||products[0]||{};
-          photo=hit.image_front_small_url||hit.image_front_url||"";
+          const r=await getJSON(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url&langs=fr`);
+          photo=bestProductImage(r.hits||r.products||[],name);
         }catch(e){}
+        if(photo)break;
+        try{
+          const r=await getJSON(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=12&fields=product_name,product_name_fr,image_front_small_url,image_front_url,image_front_thumb_url`);
+          photo=bestProductImage(r.products||[],name);
+        }catch(e){}
+        if(photo)break;
       }
-      IMG[name]=photo;fails=0;
+      IMG[name]=photo||""; // mémorise aussi les absences pour éviter les requêtes répétées
       try{localStorage.setItem(IMGKEY,JSON.stringify(IMG))}catch(e){}
       document.querySelectorAll(`.thumb[data-img="${CSS.escape(name)}"]`).forEach(el=>{el.removeAttribute("data-img");if(IMG[name]){const im=new Image();im.alt=`Photo du produit ${name}`;im.onerror=()=>{im.remove();};im.src=IMG[name];el.appendChild(im)}});
-    }catch(e){if(++fails>=3)imgOff=true}
-    await new Promise(r=>setTimeout(r,700));
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,900));
   }
   imgBusy=false;
 }
-const io="IntersectionObserver" in window?new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);const n=e.target.dataset.img;if(n&&!imgQueue.includes(n))imgQueue.push(n)}});pumpImages()},{rootMargin:"200px"}):null;
+const io="IntersectionObserver" in window?new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);const n=e.target.dataset.img;if(n&&!imgQueue.includes(n))imgQueue.push(n)}});pumpImages()},{rootMargin:"250px"}):null;
 function watchImages(){if(!io||imgOff)return;document.querySelectorAll(".thumb[data-img]").forEach(el=>io.observe(el))}
 
 // Photo prise avec l’appareil du téléphone : conservée localement pour ce produit.
